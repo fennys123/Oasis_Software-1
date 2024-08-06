@@ -1,0 +1,290 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+
+{% block titulo %}Usuarios{% endblock %}
+
+<!--{% block Opciones %}
+  <li class="nav-item lateralOpciones2">
+    <a class="nav-link text-white" href="{% url 'guInicio' %}">
+      Inicio                    
+    </a>
+  </li>
+  <li class="nav-item lateralOpciones2">
+    <a class="nav-link text-white" href="{% url 'guUsuariosBloqueados' %}">
+      Usuarios Bloqueados                    
+    </a>
+  </li>
+{% endblock %} -->
+
+{% block contenedor %}
+  <div class="radio-inputs many">
+    <label class="radio">
+      <a href="{% url 'guInicio' %}">
+        <input type="radio" name="radio" checked="" />
+        <span class="name">Inicio</span>
+      </a>
+    </label>
+    <label class="radio">
+      <a href="{% url 'guUsuariosBloqueados' %}">
+        <input type="radio" name="radio" />
+        <span class="name">Usuarios Bloqueados</span>
+      </a>
+    </label>
+  </div>
+  
+  <h1>Usuarios</h1>
+
+  <div class="Contenido">
+      <div class="conteos">
+        <p>Todos (<span>{{ data|length }}</span>)</p>
+        <p class="divider">|</p>
+        <p>Administrador (<span>{{ administradores }}</span>)</p>
+        <p class="divider">|</p>
+        <p>Bartender (<span>{{ bartenders }}</span>)</p>
+        <p class="divider">|</p>
+        <p>Mesero (<span>{{ meseros }}</span>)</p>
+        <p class="divider">|</p>
+        <p>Cliente (<span>{{ clientes }}</span>)</p>
+      </div>
+      <div class="search">
+          <input placeholder="Buscar usuarios..." type="text">
+          <button type="submit">Buscar</button>
+      </div>
+  </div>
+  <div class="Agregar">
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#crearUsuario">Crear Usuario</button>
+  </div>
+  <div id="contenedorTabla">
+    <table class="table"> <!--id="table" Para agregar el DataTables-->
+      <thead class="thead-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in data %}
+          <tr>
+            <td data-label="Nombre">{{ c.nombre }}</td>
+            <td data-label="Email">{{ c.email }}</td>
+            <td data-label="Rol">{{ c.get_rol_display }}</td>
+            <td data-label="Acciones">
+              <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarUsuario{{ c.id }}"><i class="bi bi-pencil"></i></button>
+              <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'guUsuariosEliminados' c.id %}')"><i class="bi bi-x-lg"></i></a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!--
+  <div id="contenedorTabla" class="contenedorTabla">            
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Nombre de usuario</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Fecha de Nacimiento</th>
+            <th>Cédula</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in data %}
+          <tr>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.get_rol_display }}</td>
+            <td>{{ c.fecha_nacimiento}}</td>
+            <td>{{ c.cedula}}</td>
+            <td>{{ c.get_estado_display }}</td>
+            <td>
+              <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarUsuario{{ c.id }}"><i class="bi bi-pencil"></i></button>
+              <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'guUsuariosEliminados' c.id %}')"><i class="bi bi-x-lg"></i></a>
+            </td>
+          </tr>
+        </tbody>
+        {% endfor %}
+      </table>
+    </div>
+    -->
+
+    
+    <div class="modal" id="myModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Detalles de Usuario</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div>
+                  <form>
+                    <div class="mb-3">
+                      <label for="exampleInputEmail1" class="form-label">Nombre del usuario</label>
+                      <input type="text" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                      <label>Estado</label>
+                      <div class="dropdown dropend">
+                          <button id="botonDropdown" type="button" class="btn bg-transparent dropdown-toggle" data-bs-toggle="dropdown">
+                            Activo
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li><a class="dropdown-item disabled" href="#">Bloqueado</a></li>
+                          </ul>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                      <label>Pedidos</label>
+                    </div>
+                    <div class="mb-3">
+                      <button class="btn btn-primary" readonly>Pedido#3</button>
+                    </div>
+                    <div class="mb-3">
+                      <label>Reservas</label>
+                    </div>
+                    <div class="mb-3">    
+                      <button class="btn btn-primary">Reserva#5</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+    
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="crearUsuario" tabindex="-1" role="dialog" aria-labelledby="crearUsuarioLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <p class="tituloFormulario">Crear usuario</p>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form class="formulario" action="{% url 'guUsuariosCrear' %}" method="post" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <div class="flex">
+                          <label>
+                              <input required="true" type="text" class="input" name="nombre">
+                              <span>Nombre</span>
+                          </label>
+                          <label>
+                              <input required="true" type="number" class="input" name="cedula">
+                              <span>Cédula</span>
+                          </label>
+                      </div> 
+                      <label>
+                          <input required="true" type="email" class="input" name="email">
+                          <span>Email</span>
+                      </label>  
+                      <label>
+                          <input required="true" type="password" class="input" name="password">
+                          <span>Contraseña</span>
+                      </label>
+                      <div class="flex">
+                          <label class="select-label">
+                              <select name="rol" class="input select">
+                                  {% for rol_value, rol_nombre in roles %}
+                                      <option value="{{ rol_value }}">{{ rol_nombre }}</option>
+                                  {% endfor %}
+                              </select>
+                              <span>Rol</span>
+                          </label>
+                          <label class="select-label">
+                            <select name="Estado" class="input select">
+                                {% for estado_value, estado_nombre in estado %}
+                                    <option value="{{ estado_value }}">{{ estado_nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <span>Estado</span>
+                        </label>
+                      </div> 
+                      <label>
+                        <input required="true" type="date" class="input" name="fechaNacimiento">
+                        <span>Fecha de nacimiento</span>
+                      </label> 
+                      <div class="mb-3 mt-2 file-input">
+                        <span>Foto de perfil</span>
+                        <input class="form-control" type="file" id="formFile" name="foto">
+                      </div>
+                    <button class="btn btn-success mb-2 mt-2" type="submit">Crear Usuario</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
+
+
+  {% for c in data %}
+    <div class="modal fade" id="editarUsuario{{ c.id }}" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <p class="tituloFormulario">Editar usuario</p>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form class="formulario" action="{% url 'guUsuariosActualizar' c.id %}" method="post" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <div class="flex">
+                          <label>
+                              <input required="true" type="text" class="input" name="nombre" value="{{ c.nombre }}">
+                              <span>Nombre</span>
+                          </label>
+                          <label>
+                              <input required="true" type="number" class="input" name="cedula" value="{{ c.cedula }}">
+                              <span>Cédula</span>
+                          </label>
+                      </div> 
+                      <label>
+                          <input required="true" type="email" class="input" name="email" value="{{ c.email }}">
+                          <span>Email</span>
+                      </label>  
+                      <div class="flex">
+                          <label class="select-label">
+                              <select name="rol" class="input select" required="true">
+                                {% for rol_value, rol_nombre in roles %}
+                                  <option value="{{ rol_value }}" {% if c.rol == rol_value %}selected{% endif %}>{{ rol_nombre }}</option>
+                                {% endfor %}
+                              </select>
+                              <span>Rol</span>
+                          </label>
+                          <label class="select-label">
+                            <select name="Estado" class="input select">
+                                {% for estado_value, estado_nombre in estado %}
+                                  <option value="{{ estado_value }}" {% if c.estado == estado_value %}selected{% endif %}>{{ estado_nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <span>Estado</span>
+                        </label>
+                      </div> 
+                      <label>
+                        <input required="true" type="date" class="input" name="fechaNacimiento" value="{{ c.fecha_nacimiento|date:'Y-m-d' }}">
+                        <span>Fecha de nacimiento</span>
+                      </label> 
+                      <div class="mb-3 mt-2 file-input">
+                          <span>Cambiar foto de perfil</span>
+                          <input class="form-control" type="file" id="formFile" name="foto_nueva" value="{{ c.foto.url }}">
+                      </div>
+                    <button class="btn btn-success mb-2 mt-2" type="submit">Editar Usuario</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}

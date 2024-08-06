@@ -1,0 +1,155 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+
+{% block titulo %}Galería{% endblock %}
+
+{% block Opciones %}
+  <li class="nav-item lateralOpciones2">
+    <a class="nav-link text-white" href="{% url 'gaInicio' %}">
+      Inicio                    
+    </a>
+  </li>
+{% endblock %}
+
+
+{% block contenedor %}
+    <div class="contenedor2">
+        <div class="titulo">
+            <h1 style="margin-top: 0.5em;" >Nombre Carpeta</h1>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#nombre"><i class="bi bi-pencil"></i></button>
+        </div>
+        <div class="row">
+            <div  class="col-md-12 productos2">
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga1.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga2.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga3.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga4.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga5.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+                <div class="foto">
+                    <img src="{% static 'Oasis/img/ga6.jpg' %}" data-bs-toggle="modal" data-bs-target="#verImagen" alt="Foto 1">
+                    <div class="acciones">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal3"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal" id="nombre">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Editar Nombre de Carpeta</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form> <!-- Agrega la etiqueta form aquí -->
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" placeholder="---X">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </form> <!-- Cierra la etiqueta form aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Guardar cambios</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal" id="edit">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Actualizar Imagen</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <form action="tu_script_de_procesamiento.php" method="post" enctype="multipart/form-data">
+                            <label for="imagen" class="escrito">Sube la nueva imagen</label>
+                            <input type="file" id="imagen" name="imagen" accept="image/*">
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Guardar cambios</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal" id="myModal3">
+        <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h4 class="modal-title">Eliminar Imagen</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p>Seguro que desea eliminar la imagen?</p>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-success">Confirmar</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+      
+          </div>
+        </div>
+      </div>
+
+    
+      <div class="modal" id="verImagen">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <img src="{% static 'Oasis/img/ga1.jpg' %}" alt="Foto 1">
+          </div>
+        </div>
+      </div>
+{% endblock %}

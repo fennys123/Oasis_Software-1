@@ -1,0 +1,129 @@
+
+  .mesas {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 100%;
+      height: auto;
+  }
+
+  .tarjetaActiva{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 1rem;
+      border: 3px solid #00FF6A;
+      background-color: white;
+      height: 250px;
+      width: 250px;
+      margin-top: 2%;
+      transition: transform 0.3s ease-in-out;
+  }
+
+  .mesaActiva {
+      border: 1px solid #ddd;
+      border-radius: 1rem;
+      padding: 2%;
+      height: 200px;
+      width: 200px;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Nunito";
+  }
+  .mesaActiva h2{
+    font-weight: 700;
+  }
+
+  .mesaActiva p{
+      font-size: 18px;
+  }
+  
+  .mesaActiva .total{
+      margin-top: 4%;
+      color: red;
+      font-size: 17px;
+      font-weight: 500;
+  }
+
+  .tarjetaDisponible{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 1rem;
+      border: 3px solid rgb(138, 138, 138);
+      background-color: white;
+      height: 250px;
+      width: 250px;
+      margin-top: 2%;
+  }
+
+  .mesaDisponible {
+      border: 1px solid #ddd;
+      border-radius: 1rem;
+      padding: 2%;
+      height: 200px;
+      width: 200px;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Nunito";
+  }
+  .mesaDisponible h2{
+    font-weight: 700;
+  }
+
+  .mesaDisponible p{
+      font-size: 18px;
+  }
+
+  .modal_titulo{
+    font-family: "Nunito";
+    font-weight: 700;
+    color: #fc4664;
+  }
+
+  .modal_info{
+    font-family: "Nunito";
+    font-weight: 600;
+  }
+  .modal_info_img{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .mesa ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+  }
+
+  .mesa ul li {
+      margin: 5px 0;
+  }
+
+  .mesa p:last-child {
+      font-weight: bold;
+      color: #ff0000;
+  }
+
+  .cuentaProductos{
+      width: 100%;
+  }
+
+  #totalModal{
+      text-align: right;
+      margin-right: 4%;
+  }
+
+  #opcionBotones{
+      display: flex;
+      justify-content: space-between;
+      width: 500px;
+  }

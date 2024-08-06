@@ -1,0 +1,85 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+{% load humanize %}
+{{data}}
+
+{% block titulo %}Entradas{% endblock %}
+
+{% block contenedor %}
+  <div class="radio-inputs">
+    <label class="radio">
+      <a href="{% url 'Eventos' %}">
+        <input type="radio" name="radio" checked=""/>
+        <span class="name">Inicio</span>
+      </a>
+    </label>
+  </div>
+    <h1>{{ evento.nombre }}</h1>
+    <div class="Contenido">
+        <div class="conteos">
+            <p>Entradas disponibles (<span>{{ evento.entradas_disponibles }}</span>)</p>
+        </div>
+    </div>
+    <div id="contenedorTabla">
+      <table class="table">
+        <thead class="thead-light">
+          <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in entradas %}
+            <tr>
+              <td data-label="ID">{{ e.entrada.id }}</td>
+              <td data-label="Usuario">{{ e.entrada.usuario }}</td>
+              <td data-label="Fecha">{{ e.entrada.fecha_compra }}</td>
+              <td data-label="Total">{{ e.entrada.total|intcomma }}</td>
+              <td data-label="Acciones">
+                <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarEntrada' e.entrada.id %}')"><i class="bi bi-x-lg"></i></a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+
+    <!--
+      <div id="contenedorTabla" class="contenedorTabla">            
+          <table id="tabla" class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Entradas Generales</th>
+                <th>Entradas Vip</th>
+                <th>Total</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entrada_con_correo in entradas_con_correo %}
+                <tr>
+                  <td>{{ entrada_con_correo.entrada.id }}</td>
+                  <td>{{ entrada_con_correo.entrada.usuario }}</td>
+                  <td>{{ entrada_con_correo.correo }}</td>
+                  <td>{{ entrada_con_correo.entrada.entrada_general }}</td>
+                  <td>{{ entrada_con_correo.entrada.entrada_vip }}</td>
+                  <td>{{ entrada_con_correo.entrada.total|intcomma }}</td>
+                  <td>{{ entrada_con_correo.entrada.fecha_compra }}</td>
+                  <td>
+                    <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarEntrada' entrada_con_correo.entrada.id %}')"><i class="bi bi-x-lg"></i></a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+    -->
+{% endblock %}

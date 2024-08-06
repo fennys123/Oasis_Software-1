@@ -1,0 +1,73 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+{% load humanize %}
+{{data}}
+
+{% block titulo %}Entradas{% endblock %}
+
+{% block Opciones %}
+    <li class="nav-item lateralOpciones2">
+        <a class="nav-link text-white" href="{% url 'ver_perfil' %}">
+          Inicio                    
+        </a>
+    </li>
+    {% if user.rol == 4 %}
+        <li class="nav-item lateralOpciones2">
+            <a class="nav-link text-white" href="{% url 'ver_detalles_pedido_usuario' %}">
+            Pedidos activos                   
+            </a>
+        </li>
+        <li class="nav-item lateralOpciones2">
+            <a class="nav-link text-white" href="{% url 'ver_ventas' %}">
+            Historial de pedidos                   
+            </a>
+        </li>
+        <li class="nav-item lateralOpciones2">
+            <a class="nav-link text-white" href="{% url 'reservas_usuario' %}">
+            Reservas                    
+            </a>
+        </li>
+        <li class="nav-item lateralOpciones2">
+          <a class="nav-link text-white" href="{% url 'entradas_usuario' %}">
+          Entradas
+          </a>
+        </li>
+    {% else %}
+        <li class="nav-item lateralOpciones2">
+            <a class="nav-link text-white" href="{% url 'ver_ventas' %}">
+            Historial de Ventas                   
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+
+
+{% block contenedor %}
+    <h1>{{ evento.nombre }}</h1>
+    <div class="w-100 d-flex justify-content-between" style="height:auto; padding: 3% 2%">
+        <div class="d-flex" style="width: 40%;">
+            <img src="{{ evento.foto.url }}" class="card-img-top" alt="Evento" style="height: 300px; width: 100%; border-radius: 30px;"> 
+        </div>
+        <div style="width:58%; overflow-wrap: break-word; word-wrap: break-word">
+            <h6 class="card-text">{{ evento.descripcion }}</h6>
+            <br>
+            <h5 class="card-text"><strong>Fecha: </strong>{{ evento.fecha }}</h5>
+            {% if entrada.entrada_general > 0 and entrada.entrada_vip > 0 %}
+                <h5><strong>Entrada General:</strong> {{ entrada.entrada_general }}</h5>
+                <h5><strong>Entrada VIP:</strong> {{ entrada.entrada_vip }}</h5>
+            {% elif entrada.entrada_general > 0 and entrada.entrada_vip == 0 %}
+                <h5><strong>Entrada General:</strong> {{ entrada.entrada_general }}</h5>
+            {% elif entrada.entrada_vip > 0 and entrada.entrada_general == 0 %}
+                <h5><strong>Entrada VIP:</strong> {{ entrada.entrada_vip }}</h5>
+            {% endif %}
+            <h5><strong>Total Pagado:</strong> {{ entrada.total|intcomma }}</h5>
+            <br>
+            <p style="color: #fc4664;">Esta entrada es válida para<strong> {{ total_personas }}</strong> personas</p>
+        </div>
+    </div>
+    <h1 style="margin-top: 0.5em;">Información importante</h1>
+    <div class="w-100 d-flex justify-content-between" style="height:auto; padding: 3% 2%">
+        <p>hola</p>
+    </div>
+{% endblock %}

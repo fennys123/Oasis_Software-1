@@ -1,0 +1,61 @@
+  .bloqueEvento{
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      max-height: auto;
+  }
+
+  .evento {
+      display: flex;
+      border: 1px solid #ccc;
+      justify-content: space-between;
+      border-radius: 5px;
+      padding: 20px;
+      width: 47%;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+      margin-top: 2%;
+      flex-wrap: wrap;
+  }
+
+  .evento h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #fc4664;
+  }
+
+  .evento p {
+      font-size: 18px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+  }
+
+  .evento__detalles{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+
+  #verReservaciones {
+      display: inline-block;
+      padding: 7px ;
+      width: 100px;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+  }
+
+  #verReservaciones:hover {
+      background-color: #0004d8;
+  }
+  .botonesEvento{
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+  }
+  .botonesCrud{
+      display: flex;
+      justify-content: space-between;
+      width: 20%;
+  }

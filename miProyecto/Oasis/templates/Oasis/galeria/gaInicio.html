@@ -1,0 +1,126 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+{{data}}
+
+{% block titulo %}Galería{% endblock %}
+
+{% block Opciones %}
+  <li class="nav-item lateralOpciones2">
+    <a class="nav-link text-white" href="{% url 'gaInicio' %}">
+      Inicio                    
+    </a>
+  </li>
+{% endblock %}
+
+
+{% block contenedor %}
+    <div class="radio-inputs">
+        <label class="radio">
+        <a href="{% url 'gaInicio' %}">
+            <input type="radio" name="radio" checked=""/>
+            <span class="name">Inicio</span>
+        </a>
+        </label>
+    </div>
+    <h1>Galería</h1>
+    <div class="Contenido">
+        <div class="conteos">
+        <p>Todos (<span id="totalUsuarios">0</span>)</p>
+        </div>
+        <div class="search">
+            <input  type="text" id="myInput" placeholder="Buscar productos...">
+            <button id="searchButton" type="submit">Buscar</button>
+        </div>
+    </div>
+    <div class="Agregar">
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarCarpeta">Agregar carpeta</button>
+    </div>
+    <div class="row">
+        <div  class="col-md-12 productos2">
+            {% for c in data %}
+                <div class="pedido-item3 foto">
+                    <div class="contenedor-img">
+                        <img src="{{ c.foto.url }}" alt="foto">
+                    </div>
+                    <div class="nombre_carpeta">
+                        <p>{{ c.nombre }}</p>
+                    </div>
+                    <div class="fecha">
+                        <p style="font-size: 15px;">{{ c.fecha }}</p>
+                    </div>
+                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarCarpeta{{ c.id }}"><i class="bi bi-pencil"></i></button>
+                    <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarCarpeta' c.id %}')"><i class="bi bi-x-lg"></i></a>
+                    <a href="{% url 'gaFotos' %}"><i class="bi bi-eye"></i></a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+
+
+    <div class="modal fade" id="agregarCarpeta" tabindex="-1" role="dialog" aria-labelledby="agregarCarpetaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="tituloFormulario">Agregar carpeta</p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="formulario" action="{% url 'crearCarpeta' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                          <label>
+                              <input required="true" type="text" class="input" name="nombre">
+                              <span>Nombre</span>
+                          </label>
+                          <label>
+                            <input required="true" type="date" class="input" min="4" max="8" size="1" name="fecha">
+                            <span>Fecha</span>
+                          </label>
+                          <div class="mb-3 mt-2 file-input">
+                            <span>Imagen de portada</span>
+                            <input class="form-control" type="file" id="formFile" name="foto">
+                          </div>
+                      <button class="btn btn-success mb-2 mt-2" type="submit">Agregar Carpeta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+
+
+    {% for c in data %}
+      <div class="modal fade" id="editarCarpeta{{ c.id }}" tabindex="-1" role="dialog" aria-labelledby="editarCarpetaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="tituloFormulario">Editar carpeta</p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="formulario" action="{% url 'actualizarCarpeta' c.id %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                          <label>
+                              <input required="true" type="text" class="input" name="nombre" value="{{ c.nombre }}">
+                              <span>Nombre</span>
+                          </label>
+                          <label>
+                            <input required="true" type="date" class="input" min="4" max="8" size="1" name="fecha" value="{{ c.fecha|date:'Y-m-d' }}">
+                            <span>Fecha</span>
+                          </label>
+                          <div class="mb-3 mt-2 file-input">
+                            <span>Imagen de portada</span>
+                            <input class="form-control" type="file" id="formFile" name="foto_nueva">
+                          </div>
+                      <button class="btn btn-success mb-2 mt-2" type="submit">Editar Carpeta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+    {% endfor %}
+{% endblock %}

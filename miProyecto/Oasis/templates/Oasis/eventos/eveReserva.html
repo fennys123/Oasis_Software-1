@@ -1,0 +1,81 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block titulo %}Reservas{% endblock %}
+
+{% block contenedor %}
+    <div class="radio-inputs">
+        <label class="radio">
+        <a href="{% url 'Eventos' %}">
+            <input type="radio" name="radio" checked=""/>
+            <span class="name">Inicio</span>
+        </a>
+        </label>
+    </div>
+    <h1>{{ evento.nombre }}</h1>
+    <div class="Contenido">
+        <div class="conteos">
+        <p>Mesas reservadas (<span>{{ totalReservadas }}</span>)</p>
+        </div>
+        <div class="search">
+            <input  type="text" id="myInput" placeholder="Buscar mesa...">
+            <button id="searchButton" type="submit">Buscar</button>
+        </div>
+    </div>
+    <div class="mesas">
+        {% for reserva_info in reservasInfo %}
+            <div class="tarjetaActiva">
+                <section class="mesaActiva">
+                    <h2>{{ reserva_info.mesa_reservada.nombre }}</h2>
+                    <p>Reservada</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal{{ forloop.counter }}">
+                        Ver
+                    </button>
+                </section>
+            </div>
+        {% endfor %}
+        {% for m in mesasNoReservadas %}
+            <div class="tarjetaDisponible">
+                <section class="mesaDisponible">
+                    <h2>{{ m.nombre }}</h2>
+                    <p>Disponible</p>
+                </section>
+            </div>
+        {% endfor %}
+
+
+        {% for reserva_info in reservasInfo %}
+            <div class="modal" id="myModal{{ forloop.counter }}">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title modal_titulo">{{ reserva_info.mesa_reservada.nombre }}</h3>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body modal_info">
+                            <h5 style="text-align: center;"><b>{{ reserva_info.reserva.evento.nombre }}</b></h5>
+                            <div class="modal_info_img">
+                                <img  src="{{ reserva_info.reserva.evento.foto.url }}" alt="{{ reserva_info.reserva.evento.nombre }}" class="img-fluid" style="height: 180px; width: 80%; border-radius: 30px;">
+                            </div>
+                            <br>
+                            <h5><b>Cliente: </b>{{ reserva_info.reserva.usuario.nombre }}</h5>
+                            <h5><b>Correo: </b>{{ reserva_info.reserva.usuario.email }}</h5>
+                            <h5><b>CC: </b>{{ reserva_info.reserva.usuario.cedula }}</h5>
+                            <h5><b>Fecha de compra: </b>{{ reserva_info.reserva.fecha_compra }}</h5>
+                            <h5><b>Mesa x{{ reserva_info.mesa_reservada.capacidad }} personas</b></h5>
+                            <div id="totalModal" class="modal-body">
+                                <h4><b>Total pagado: {{ reserva_info.reserva.total|intcomma }}</b></h4>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div id="opcionBotones">
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-success" data-bs-dismiss="modal">LLegada al bar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+{% endblock %}
