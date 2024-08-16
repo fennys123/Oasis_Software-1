@@ -462,6 +462,15 @@ def actualizarProducto(request, id):
     return redirect('Productos')
 
 
+def invDetalleProducto(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    producto = Producto.objects.get(pk = id)
+    categories = Categoria.objects.all()
+    contexto = {'user':user, 'producto': producto, 'categories': categories,'url': 'Inv_Detalle_Producto'}
+    return render(request, 'Oasis/inventario/invDetalleProducto.html', contexto)
+
+
 
 def peInicio(request):
     logueo = request.session.get("logueo", False)
@@ -506,8 +515,18 @@ def pedidoEmpleado(request, id):
     user = Usuario.objects.get(pk=logueo["id"])
     carrito = request.session.get("carrito", [])
     mesa = Mesa.objects.get(pk=id)
-    productos = Producto.objects.all()
-    contexto = {'user': user, 'productos': productos, 'mesa': mesa, 'carrito': carrito, 'url': "Agregar_Pedido"}
+    categorias = Categoria.objects.all()
+
+    cat = request.GET.get("cat")
+
+    if cat is not None:
+        cat = int(cat)
+        c = Categoria.objects.get(pk=cat)
+        productos = Producto.objects.filter(categoria=c)
+    else:
+        productos = Producto.objects.all()
+
+    contexto = {'user': user, 'productos': productos, 'mesa': mesa, 'carrito': carrito, 'categorias': categorias, 'cat': cat, 'url': "Agregar_Pedido"}
     return render(request, "Oasis/pedidos/pedidoEmpleado.html", contexto)
 
 #MESAS
@@ -811,12 +830,55 @@ def actualizarCategoria(request, id):
         
     return redirect('Menu')
 
-def meProductos(request):
+def meProductos(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
-    contexto = {'user':user, 'url': 'Productos'}
+
+    categoria = Categoria.objects.get(pk = id)
+    productos = Producto.objects.filter(categoria = categoria)
+
+    contexto = {'user':user, 'categoria' : categoria, 'productos': productos,'url': 'Productos'}
     return render (request, 'Oasis/menu/meProductos.html', contexto)
 
+
+def meCrearProducto(request, id):
+    if request.method == "POST":
+        try:
+            nom = request.POST.get('nombre')
+            desc = request.POST.get('descripcion')
+            inventario = int(request.POST.get('inventario'))
+            pre = request.POST.get('precio')
+            foto = request.FILES.get('foto')
+
+            cat = Categoria.objects.get(pk=id)
+            
+            if foto == None:
+                foto = "Img_productos/default.png"
+
+            q = Producto(
+                nombre=nom,
+                descripcion=desc,
+                categoria=cat,
+                inventario=inventario,
+                precio=pre,
+                foto=foto,
+            )
+            q.save()
+            messages.success(request, "Producto Agregado Correctamente!")
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+    else:
+        messages.warning(request, f'Error: No se enviaron datos...')
+
+    return redirect('meProductos', id)
+
+
+def meDetalleProducto(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    producto = Producto.objects.get(pk = id)
+    contexto = {'user':user, 'producto': producto, 'url': 'Me_Detalle_Producto'}
+    return render(request, 'Oasis/menu/meDetalleProducto.html', contexto)
 
 
 def gaInicio(request):

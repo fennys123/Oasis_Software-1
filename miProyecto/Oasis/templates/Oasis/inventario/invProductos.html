@@ -46,6 +46,7 @@
             <td data-label="Categoria">{{ p.categoria }}</td>
             <td data-label="Stock">{{ p.inventario }}</td>
             <td data-label="Acciones">
+              <a type="button" class="btn btn-info" href="{% url 'invDetalleProducto' p.id %}"><i class="bi bi-eye-fill"></i></a>
               <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarProducto{{ p.id }}"><i class="bi bi-pencil"></i></button>
               <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarProducto' p.id %}')"><i class="bi bi-x-lg"></i></a>
             </td>

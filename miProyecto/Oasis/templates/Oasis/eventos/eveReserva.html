@@ -27,7 +27,7 @@
         {% for reserva_info in reservasInfo %}
             <div class="tarjetaActiva">
                 <section class="mesaActiva">
-                    <h2>{{ reserva_info.mesa_reservada.nombre }}</h2>
+                    <h4>{{ reserva_info.mesa_reservada.nombre }}</h4>
                     <p>Reservada</p>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal{{ forloop.counter }}">
                         Ver
@@ -38,7 +38,7 @@
         {% for m in mesasNoReservadas %}
             <div class="tarjetaDisponible">
                 <section class="mesaDisponible">
-                    <h2>{{ m.nombre }}</h2>
+                    <h4>{{ m.nombre }}</h4>
                     <p>Disponible</p>
                 </section>
             </div>

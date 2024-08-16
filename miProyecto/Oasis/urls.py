@@ -86,6 +86,8 @@ urlpatterns = [
     path('Crear_Producto/', views.crearProducto, name='crearProducto'),
     path('Eliminar_Producto/<int:id>', views.eliminarProducto, name='eliminarProducto'),
     path('Actualizar_Producto/<int:id>', views.actualizarProducto, name='actualizarProducto'),
+    path('Inv_Detalle_Producto/<int:id>', views.invDetalleProducto, name='invDetalleProducto'),
+
 
 
     #PEDIDOS
@@ -124,7 +126,9 @@ urlpatterns = [
     path('Crear_Categoria/', views.crearCategoria, name='crearCategoria'),
     path('Eliminar_Categoria/<int:id>', views.eliminarCategoria, name='eliminarCategoria'),
     path('Actualizar_Categoria/<int:id>', views.actualizarCategoria, name='actualizarCategoria'),
-    path('Productos/', views.meProductos, name='meProductos'),
+    path('Productos/<int:id>', views.meProductos, name='meProductos'),
+    path('Me_Crear_Producto/<int:id>', views.meCrearProducto, name='meCrearProducto'),
+    path('Me_Detalle_Producto/<int:id>', views.meDetalleProducto, name='meDetalleProducto'),
 
 
 #   CRUD GALERÍA

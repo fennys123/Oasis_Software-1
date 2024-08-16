@@ -26,23 +26,23 @@
     <div class="Agregar">
         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarCategoria">Agregar Categoria</button>
     </div>
-    <div class="row">
-        <div  class="col-md-12 productos2">
-            {% for c in data %}
-            <div class="contenedorCategoria">
-                <a href="{% url 'meProductos' %}">
-                    <div class="pedido-item2">
-                        <img src="{{ c.foto.url }}" alt="foto">
-                        <p>{{ c.nombre }}</p>
+    <div class="contenedor-categorias">
+        {% for c in data %}
+            <div class="card-categoria">
+                <img src="{{ c.foto.url }}" alt="categoria" width="100%">
+                <div class="card-categoria__content">
+                    <div>
+                        <p class="card-categoria__title">{{ c.nombre }}</p>
+                        <p class="card-categoria__description">{{ c.descripcion }}</p>
                     </div>
-                </a>
-                <div class="botonesCategoria">
-                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarCategoria{{ c.id }}"><i class="bi bi-pencil"></i></button>
-                    <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarCategoria' c.id %}')"><i class="bi bi-x-lg"></i></a>
+                    <div class="card-categoria__botones">
+                        <a type="button" class="btn btn-info" href="{% url 'meProductos' c.id %}"><i class="bi bi-eye-fill"></i></a>
+                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarCategoria{{ c.id }}"><i class="bi bi-pencil"></i></button>
+                        <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarCategoria' c.id %}')"><i class="bi bi-x-lg"></i></a>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
     </div>
 
 

@@ -165,18 +165,29 @@
 }
 
 .invoice-modal .modal-content .modal-body {
-    border-bottom: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .invoice-modal .modal-content .modal-body .logoFactura {
   width: 100%;
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  position: relative;
+  margin-bottom: 0.5em;
+}
+
+.invoice-modal .modal-content .modal-body .logoFactura img {
+  margin: 0 auto;
+}
+
+.invoice-modal .modal-content .modal-body .logoFactura button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .invoice-modal .modal-content .modal-body .datosFactura {

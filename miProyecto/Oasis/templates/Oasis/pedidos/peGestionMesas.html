@@ -46,15 +46,15 @@
       {% if m.estado == "Disponible" %}
         <div class="tarjetaDisponible">
           <section class="mesaDisponible">
-            <h2>{{ m.nombre }}</h2>
+            <h4>{{ m.nombre }}</h4>
             <p>{{ m.estado }}</p>
-            <a type="button" class="btn btn-success" href="{% url 'pedidoEmpleado' m.id %}">Activar Mesa</a>
+            <a type="button" class="btn btn-success" href="{% url 'pedidoEmpleado' m.id %}">Activar</a>
           </section>
         </div>
       {% else %}
         <div class="tarjetaActiva">
           <section class="mesaActiva">
-            <h2>{{ m.nombre }}</h2>
+            <h4>{{ m.nombre }}</h4>
             <p>{{ m.estado }}</p>
             <a type="button" class="btn btn-primary" href="{% url 'ver_pedidos_mesa' m.id %}">Ver</a>
           </section>

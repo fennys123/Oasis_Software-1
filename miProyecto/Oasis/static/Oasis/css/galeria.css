@@ -1,39 +1,44 @@
-.pedido-item3{
-    position: relative;
-    display: block;
-    justify-content: center;
-    background-color: white;
-    border: 1px solid #ccc ;
+.contenedor-galeria {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-height: auto;
+    gap: 10px;
     margin-bottom: 20px;
-    margin-top: 5px;
-    width: 450px;
-    height: 420px;
-    text-align: center;
-    transition: filter 0.2s;
-    overflow: hidden
 }
-.contenedor-img{
-    border: 1px solid #ccc;
-    width: 420px;
-    height: 265px;
-    margin: 3%;
+
+.contenedor-galeria a{
+    text-decoration: none;
 }
-.pedido-item3 img{
+
+.contenedor-galeria a:hover{
+    text-decoration: none;
+}
+
+.contenedor-galeria .carpeta {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    min-height: 270px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    color: black;
+    border-radius: 20px;
+}
+
+.contenedor-galeria .carpeta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.contenedor-galeria .carpeta img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
 }
-.pedido-item3 p {
-    position: absolute;
-    text-align: center;
-    color: black;
-    font-size: 20px;
-    margin: 3%;
-}
-.pedido-item3:hover{
-    filter: grayscale(70%);
-}
-.fecha{
-    height: 10%;
-    margin-top: 11%;
+
+.contenedor-galeria .carpeta .nombre {
+    padding: 10px;
+    font-weight: 600 
 }

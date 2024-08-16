@@ -1,85 +1,70 @@
+.mesas {
+    display: flex;
+    justify-content: start;
+    gap: 4em;
+    flex-wrap: wrap;
+    width: 100%;
+    height: auto;
+    margin-top: 2%;
+}
 
-  .mesas {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      max-width: 100%;
-      height: auto;
-  }
+.tarjetaActiva,
+.tarjetaDisponible {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1rem;
+    background-color: white;
+    height: 220px;
+    width: 220px;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box; /* Asegura que el padding y el border se incluyan en el tamaño total */
+}
 
-  .tarjetaActiva{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 1rem;
-      border: 3px solid #00FF6A;
-      background-color: white;
-      height: 250px;
-      width: 250px;
-      margin-top: 2%;
-      transition: transform 0.3s ease-in-out;
-  }
+.tarjetaActiva {
+    border: 3px solid #00FF6A;
+}
 
-  .mesaActiva {
-      border: 1px solid #ddd;
-      border-radius: 1rem;
-      padding: 2%;
-      height: 200px;
-      width: 200px;
-      background-color: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: "Nunito";
-  }
-  .mesaActiva h2{
+.tarjetaDisponible {
+    border: 3px solid rgb(84, 73, 73);
+}
+
+.mesaActiva,
+.mesaDisponible {
+    border: 1px solid #ddd;
+    border-radius: 1rem;
+    padding: 2%;
+    height: 180px;
+    width: 180px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Nunito";
+    box-sizing: border-box; /* Asegura que el padding y el border se incluyan en el tamaño total */
+}
+
+.mesaActiva h4,
+.mesaDisponible h4 {
     font-weight: 700;
-  }
+}
 
-  .mesaActiva p{
-      font-size: 18px;
-  }
-  
-  .mesaActiva .total{
-      margin-top: 4%;
-      color: red;
-      font-size: 17px;
-      font-weight: 500;
-  }
+.mesaActiva p,
+.mesaDisponible p {
+    font-size: 14px;
+}
 
-  .tarjetaDisponible{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 1rem;
-      border: 3px solid rgb(138, 138, 138);
-      background-color: white;
-      height: 250px;
-      width: 250px;
-      margin-top: 2%;
-  }
 
-  .mesaDisponible {
-      border: 1px solid #ddd;
-      border-radius: 1rem;
-      padding: 2%;
-      height: 200px;
-      width: 200px;
-      background-color: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: "Nunito";
-  }
-  .mesaDisponible h2{
-    font-weight: 700;
-  }
-
-  .mesaDisponible p{
-      font-size: 18px;
-  }
+@media screen and (max-width: 611px) {
+    .mesas {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2em;
+        margin-top: 2em;
+    }
+}
 
   .modal_titulo{
     font-family: "Nunito";
@@ -97,6 +82,8 @@
     justify-content: center;
     align-items: center;
   }
+
+
 
   .mesa ul {
       list-style-type: none;

@@ -35,25 +35,20 @@
     <div class="Agregar">
         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarCarpeta">Agregar carpeta</button>
     </div>
-    <div class="row">
-        <div  class="col-md-12 productos2">
+    <div class="contenedor-galeria">
             {% for c in data %}
-                <div class="pedido-item3 foto">
-                    <div class="contenedor-img">
-                        <img src="{{ c.foto.url }}" alt="foto">
+                <a href="{% url 'gaFotos' %}">
+                    <div class="carpeta">
+                        <img src="{{ c.foto.url }}" alt="{{ c.nombre }}">
+                        <div class="nombre">
+                            <p>{{ c.nombre }}</p>
+                        </div>
+                        <!-- <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarCarpeta{{ c.id }}"><i class="bi bi-pencil"></i></button>
+                        <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarCarpeta' c.id %}')"><i class="bi bi-x-lg"></i></a>
+                        -->
                     </div>
-                    <div class="nombre_carpeta">
-                        <p>{{ c.nombre }}</p>
-                    </div>
-                    <div class="fecha">
-                        <p style="font-size: 15px;">{{ c.fecha }}</p>
-                    </div>
-                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarCarpeta{{ c.id }}"><i class="bi bi-pencil"></i></button>
-                    <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarCarpeta' c.id %}')"><i class="bi bi-x-lg"></i></a>
-                    <a href="{% url 'gaFotos' %}"><i class="bi bi-eye"></i></a>
-                </div>
+                </a>
             {% endfor %}
-        </div>
     </div>
 
 

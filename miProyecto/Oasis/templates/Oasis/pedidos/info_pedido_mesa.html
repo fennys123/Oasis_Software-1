@@ -119,7 +119,7 @@
         {% else %}
             <a type="button" class="btn btn-info" href="{% url 'pagar_pedido' mesa.id 'empleado' %}">Pedido Pagado</a>
         {% endif %}
-        <h3 style="font-weight: 700; text-align: end;">Total: {{ cuenta|intcomma }}</h3>
+        <h3 style="font-weight: 700; text-align: end;">Total: ${{ cuenta|intcomma }}</h3>
     </div>
 
     {% for detalle_pedido in detalles_pedidos %}
