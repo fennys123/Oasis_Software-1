@@ -80,6 +80,8 @@
 @media screen and (max-width: 553px) {
   .meProductos{
     justify-content: center;
+    border: 1px solid greenyellow;
+    justify-content: center;
   }
 }
 
