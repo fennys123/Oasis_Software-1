@@ -1375,16 +1375,17 @@ def crear_pedido_admin(request, id):
 
 class token_qr(APIView):
     def post(self, request):
+        print(request.data)
         try:
-            mesa = MesaSerializer(codigo_qr = request.data.mesa)
-            user = UsuarioSerializer(email=request.data.email)
-            if serializer.is_valid(mesa):
+            mesa = Mesa.objects.get(codigo_qr = request.data['mesa'])
+            user = Usuario.objects.get(email=request.data['email'])
+            if mesa:
                 mesa.estado = mesa.ACTIVA
-                mesa.usuario = user.email
+                mesa.usuario = user
                 mesa.save()
                 return JsonResponse({'mesa':{
                     'nombre': mesa.nombre,
-                    'qr':mesa.qr
+                    'qr':mesa.codigo_qr
                 }})
         except Exception as e:
             return JsonResponse({'Error':f'{e}'}, status=400)
