@@ -952,12 +952,60 @@ def actualizarCarpeta(request, id):
     return redirect('gaInicio')
 
 
-def gaFotos(request):
+def gaFotos(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
-    contexto = {'user':user}
+    carpeta = Galeria.objects.get(pk = id)
+    fotos = Fotos.objects.filter(carpeta = carpeta)
+    contexto = {'user':user, 'carpeta': carpeta, "fotos": fotos}
     return render(request, 'Oasis/galeria/gaFotos.html', contexto)
 
+
+def agregarFoto(request, id):
+    if request.method == "POST":
+        foto_nueva = request.FILES.get('foto_nueva')
+        try:
+            q = Galeria.objects.get(pk=id)
+            nueva_foto = Fotos(
+                carpeta=q,
+                foto=foto_nueva
+            )
+            nueva_foto.save()
+            messages.success(request, "Foto Agregada Correctamente!")
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+    else:
+        messages.warning (request, f'Error: No se enviaron datos...')
+
+    return redirect('gaFotos', id=id)
+
+
+
+def cambiarFoto(request, id):
+    if request.method == "POST":
+        foto_nueva = request.FILES.get('foto_nueva')
+        try:
+            q = Fotos.objects.get(pk=id)
+            q.foto = foto_nueva
+            q.save()
+            messages.success(request, "Foto Actualizada Correctamente!")
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+    else:
+        messages.warning (request, f'Error: No se enviaron datos...')
+
+    return redirect('gaFotos', id=q.carpeta.id)
+
+
+def eliminarFoto(request, id):
+    try:
+        q = Fotos.objects.get(pk = id)
+        q.delete()
+        messages.success(request, "Foto Eliminada Correctamente!")
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+    
+    return redirect('gaFotos', id=q.carpeta.id)
 
 
 def front_productos(request):

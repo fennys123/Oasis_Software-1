@@ -134,9 +134,12 @@ urlpatterns = [
 #   CRUD GALERÍA
     path('Gestion_Galeria/', views.gaInicio, name='gaInicio'),
     path('Agregar_Carpeta/', views.crearCarpeta, name='crearCarpeta'),
-    path('Galeria_Fotos/', views.gaFotos, name='gaFotos'),
     path('Eliminar_Carpeta/<int:id>', views.eliminarCarpeta, name='eliminarCarpeta'),
     path('Actualizar_Carpeta/<int:id>', views.actualizarCarpeta, name='actualizarCarpeta'),
+    path('Galeria_Fotos/<int:id>', views.gaFotos, name='gaFotos'),
+    path('gaAgregarFoto/<int:id>', views.agregarFoto, name='agregarFoto'),
+    path('eliminarFoto/<int:id>', views.eliminarFoto, name='eliminarFoto'),
+    path('CambiarFoto/<int:id>', views.cambiarFoto, name='cambiarFoto'),
 
 
 
