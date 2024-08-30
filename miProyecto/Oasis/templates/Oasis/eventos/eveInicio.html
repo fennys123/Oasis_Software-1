@@ -54,13 +54,14 @@
                 <td data-label="Reservas">No existen reservas</td>
               {% endif %}
               <td data-label="Acciones">
+                <a type="button" class="btn btn-info" href="{% url 'detalleEvento' e.id %}"><i class="bi bi-eye-fill"></i></a>
                 <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarEvento{{ e.id }}"><i class="bi bi-pencil"></i></button>
                 <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarEvento' e.id %}')"><i class="bi bi-x-lg"></i></a>
               </td>
             </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table>  
     </div>
 
 
@@ -179,41 +180,7 @@
       </div>
     {% endfor %}
     
-<!--
-    <div id="contenedorTabla" class="contenedorTabla">            
-        <table id="tabla" class="table table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Fecha</th>
-              <th>Aforo</th>
-              <th>Entradas Disponibles</th>
-              <th>Reservas</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for e in data %}
-            <tr>
-              <td>{{ e.id }}</td>
-              <td>{{ e.nombre }}</td>
-              <td>{{ e.fecha }}</td>
-              <td>{{ e.aforo }}</td>
-              <td><a href="{% url 'eveEntradas' e.id %}" style="text-decoration: none;">{{ e.entradas_disponibles }}</a></td>
-              {% if e.reservas %}
-                <td><a href="{% url 'eveReserva' e.id%}" style="text-decoration: none;">Ver reservas</a></td>
-              {% else %}
-                <td>No existen reservas</td>
-              {% endif %}
-              <td>
-                <a type="button" class="btn btn-warning" ><i class="bi bi-pencil"></i></a>
-                <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarEvento' e.id %}')"><i class="bi bi-x-lg"></i></a>
-              </td>
-            </tr>
-          </tbody>
-          {% endfor %}
-        </table>
-    </div>
--->
+
+
+    
 {% endblock %}

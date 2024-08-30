@@ -114,3 +114,58 @@
       justify-content: space-between;
       width: 500px;
   }
+
+
+
+/*ESTA PARTE ES DE mesasInicio.html*/
+
+.contenedor_ver_mesa{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ver_mesa_nombre{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2%;
+    width: 100px;
+    height: 100px;
+    background-color: #d4d4d4;
+    border-radius: 50%;
+}
+
+.ver_mesa_nombre p{
+    font-family: "Nunito";
+    font-weight: 700;
+    margin: 0;
+}
+
+.ver_mesa_info {
+    margin-left: 25px;
+}
+
+.ver_mesa_info p{
+    font-size: 14px;
+    margin: 0;
+}
+
+.ver_mesa_botones{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+@media screen and (max-width: 376px) {
+    .contenedor_ver_mesa{
+        flex-direction: column;
+    }
+
+    .ver_mesa_info{
+        margin-top: 20px;
+    }
+}

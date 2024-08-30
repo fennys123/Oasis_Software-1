@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/1.0/token-auth/', views.CustomAuthToken.as_view()),
 	path('api/1.0/api-auth/', include('rest_framework.urls')),
 	path('api/1.0/token_qr/', views.token_qr.as_view()),
+    path('api/1.0/url_prueba/', views.url_prueba .as_view()),
 
 
 
@@ -120,6 +121,8 @@ urlpatterns = [
     path('Reservas/<int:id>', views.eveReserva, name='eveReserva'),
     path('Evento_Entradas/<int:id>', views.eveEntradas, name='eveEntradas'),
     path('Eliminar_Entrada/<int:id>', views.eliminarEntrada, name='eliminarEntrada'),
+
+    path('Detalle_Evento/<int:id>', views.detalleEvento, name='detalleEvento'),
 
 #   CRUD MENÚ (CATEGORÍAS)
     path('Gestion_Menu/', views.meInicio, name='Menu'),

@@ -43,13 +43,18 @@
     {% if not reservas_info  %}
         <p style="font-size: 14PX;">No tienes reservas de mesas para ningún evento.</p>
     {% else %}
+    <div class="Contenido">
+        <div class="conteos">
+            <p>Todos (<span>{{ reservas_info|length }}</span>)</p>
+        </div>
+    </div>
         <div class="bloqueEvento">
             {% for r in reservas_info %}
-                <div class="mesa">
-                    <div class="mesa__container">
-                        <p class="mesa__container__detalles">{{ r.reserva.mesa.nombre }}</p>
+                <div class="evento">
+                    <div class="evento_contenedor">
+                        <p class="evento_mesa">{{ r.reserva.mesa.nombre }}</p>
                         <div>
-                            <img src="{{ r.evento.foto.url }}" alt="{{ r.evento }}" width="300" height="200" style="border-radius: 1em;">
+                            <img src="{{ r.evento.foto.url }}" alt="{{ r.evento }}" width="300" height="200">
                         </div>
                     </div>
                     <a class="btn btn-primary w-100" href="{% url 'reserva_info' r.reserva.id %}">Más detalles</a>

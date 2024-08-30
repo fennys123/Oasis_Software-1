@@ -273,12 +273,12 @@ def reservas_usuario_info(request, id):
 def guInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
-    q = Usuario.objects.all()
+    q = Usuario.objects.filter(estado=1)
     usuarioAdmin = Usuario.objects.filter(rol=1).count()
     usuarioBartender = Usuario.objects.filter(rol=2).count()
     usuarioMesero = Usuario.objects.filter(rol=3).count()
     usuarioCliente = Usuario.objects.filter(rol=4).count()
-    contexto = {'data': q, 
+    contexto = {'data': q,  
     'user': user, 
     'roles':Usuario.ROLES, 
     'estado':Usuario.ESTADO,
@@ -293,8 +293,10 @@ def guInicio(request):
 def guUsuariosBloqueados(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
-    contexto = {'user':user, 'url':'Usuarios_Bloqueados'}
+    q = Usuario.objects.filter(estado=2)
+    contexto = {'user':user, 'url':'Usuarios_Bloqueados', 'data': q}
     return render(request, "Oasis/usuarios/guUsuariosBloqueados.html", contexto)
+
 
 def guUsuariosCrear(request):
     if request.method == 'POST':
@@ -695,6 +697,14 @@ def actualizarEvento(request, id):
         messages.warning (request, f'Error: No se enviaron datos...')
         
     return redirect('Eventos')
+
+
+def detalleEvento(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    evento = Evento.objects.get(pk = id)
+    contexto = {'evento': evento, 'user':user, 'url': "Gestion_Eventos"}
+    return render(request, 'Oasis/eventos/eveDetalleEvento.html', contexto)
 
 def eveEntradas(request, id):
     logueo = request.session.get("logueo", False)
@@ -1390,6 +1400,19 @@ class token_qr(APIView):
         except Exception as e:
             return JsonResponse({'Error':f'{e}'}, status=400)
 
+
+
+class url_prueba(APIView):
+    def post(self, request):
+        print(request.data)
+        try:
+            email = request.data['email']
+            if email:
+                return JsonResponse({
+                    'message': f'Bienvenido {email}'
+                })
+        except Exception as e:
+            return JsonResponse({'Error':f'{e}'}, status=400)
 
 
 def crear_pedido_usuario(request, id):

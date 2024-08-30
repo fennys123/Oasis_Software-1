@@ -1,9 +1,14 @@
   .bloqueEvento{
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content:flex-start;
       max-height: auto;
-  }
+      gap: 20px;
+    }
+
+    .evento_contenedor{
+        display: flex;
+    }
 
   .evento {
       display: flex;
@@ -59,3 +64,99 @@
       justify-content: space-between;
       width: 20%;
   }
+
+
+
+/* ESTA ES LA PARTE DEL MODAL DE VER EVENTO*/
+
+.detalle-evento{
+    width: 100%;
+    display: flex;
+    border-radius: 20px;
+  }
+  
+  .detalle-evento img{
+    width: 500px;
+    height: 340px;
+    border-radius: 20px;
+  }
+  
+  .detalle-evento .info-evento {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    padding: 0px 0px 0px 40px;
+  }
+  
+  .detalle-evento .info-evento .cabecera {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid gray;
+  }
+  
+  
+  .detalle-evento .info-evento .cabecera .titulo-producto {
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+  
+  .detalle-evento .info-evento .body {
+    width: 100%;
+    border-bottom: 1px solid gray;
+    padding: 10px 0px;
+  }
+  
+  .detalle-evento .info-evento .body p {
+    margin-bottom: 0;
+  }
+  
+  .detalle-evento .info-evento .boton {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+  }
+  
+  .detalle-evento .info-evento .boton a {
+    width: 180px;
+  }
+  
+  /*ARREGLANDO LOS BOTONES PARA INVENTARIO*/
+  .detalle-evento .info-evento .botones {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+    justify-content: end;
+  }
+  
+  @media screen and (max-width: 1200px) {
+    .detalle-evento{
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .detalle-evento .info-evento {
+      width: 100%;
+      margin-top: 10px;
+      padding: 0px;
+    }
+  
+    .detalle-evento .info-evento .cabecera {
+      flex-direction: column;
+    }
+  
+    .detalle-evento .info-evento .cabecera {
+      text-align: center;
+    }
+  }
+  
+  @media screen and (max-width: 430px) {
+    .detalle-evento img{
+      width: 80%;
+    }
+  }
+  

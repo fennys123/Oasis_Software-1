@@ -68,40 +68,6 @@
     </table>
   </div>
 
-  <!--
-  <div id="contenedorTabla" class="contenedorTabla">            
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Nombre de usuario</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Fecha de Nacimiento</th>
-            <th>Cédula</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in data %}
-          <tr>
-            <td>{{ c.nombre }}</td>
-            <td>{{ c.email }}</td>
-            <td>{{ c.get_rol_display }}</td>
-            <td>{{ c.fecha_nacimiento}}</td>
-            <td>{{ c.cedula}}</td>
-            <td>{{ c.get_estado_display }}</td>
-            <td>
-              <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarUsuario{{ c.id }}"><i class="bi bi-pencil"></i></button>
-              <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'guUsuariosEliminados' c.id %}')"><i class="bi bi-x-lg"></i></a>
-            </td>
-          </tr>
-        </tbody>
-        {% endfor %}
-      </table>
-    </div>
-    -->
-
     
     <div class="modal" id="myModal">
       <div class="modal-dialog">

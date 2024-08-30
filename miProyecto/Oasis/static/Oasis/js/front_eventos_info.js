@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
             total_general: totalGeneral
         };
 
-        fetch(`http://127.0.0.1:8000/comprar_entradas/${eventoId}/`, {
+        fetch(`http://0.0.0.0:8000/comprar_entradas/${eventoId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ document.getElementById('confirmarReservaBtn').addEventListener('click', functio
         total_general: totalGeneral
     };
 
-    fetch(`http://127.0.0.1:8000/reservar_mesa/${eventoId}/`, {
+    fetch(`http://0.0.0.0:8000/reservar_mesa/${eventoId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
