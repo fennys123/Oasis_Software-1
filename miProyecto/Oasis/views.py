@@ -290,14 +290,6 @@ def guInicio(request):
     }
     return render(request, "Oasis/usuarios/guInicio.html", contexto)
 
-def guUsuariosBloqueados(request):
-    logueo = request.session.get("logueo", False)
-    user = Usuario.objects.get(pk = logueo["id"])
-    q = Usuario.objects.filter(estado=2)
-    contexto = {'user':user, 'url':'Usuarios_Bloqueados', 'data': q}
-    return render(request, "Oasis/usuarios/guUsuariosBloqueados.html", contexto)
-
-
 def guUsuariosCrear(request):
     if request.method == 'POST':
         try:
@@ -377,6 +369,68 @@ def guUsuariosActualizar(request, id):
 
     return redirect('guInicio')
 
+
+def guUsuariosBloqueados(request):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    usuarios_bloqueados = Usuario.objects.filter(estado=2)
+
+    info_bloqueo = []
+
+    for usuario_bloqueado in usuarios_bloqueados:
+        info_bloqueo.append({
+            'usuario_bloqueado': usuario_bloqueado,
+            'bloqueo': Bloqueo.objects.get(usuario=usuario_bloqueado),
+        })
+
+
+    contexto = {'user':user, 'url':'Usuarios_Bloqueados', 'data': usuarios_bloqueados, 'info_bloqueo': info_bloqueo}
+    return render(request, "Oasis/usuarios/guUsuariosBloqueados.html", contexto)
+
+
+def guBloquearUsuario(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo')
+    else:
+        messages.warning(request,'No se enviaron datos')
+
+    try:
+        q = Usuario.objects.get(pk = id)
+        q.estado = 2
+        q.save()
+
+        bloqueado = Bloqueo(
+            usuario = q,
+            motivo = motivo,
+            fecha_bloqueo = timezone.now(),
+            realizado_por = user
+        )
+
+        bloqueado.save()
+        messages.success(request, 'Usuario bloqueado correctamente!!')
+    except Exception as e:
+        messages.error(request,f'Error: {e}')
+
+    return redirect('guInicio')
+
+
+def guDesbloquearUsuario(request, id):
+    try:
+        q = Bloqueo.objects.get(pk = id)
+
+        q.usuario.estado = 1
+        q.usuario.save()
+
+        q.delete()
+
+        messages.success(request, 'Usuario desbloqueado correctamente!!')
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+
+    return redirect('guUsuariosBloqueados')
 
 #PRODUCTOS
 
@@ -1734,6 +1788,7 @@ def ver_detalles_usuario(request):
         mesa = Mesa.objects.get(usuario=user)
     except Mesa.DoesNotExist:
         mesa = None
+
 
     detalles_pedidos = []
     cuenta = 0

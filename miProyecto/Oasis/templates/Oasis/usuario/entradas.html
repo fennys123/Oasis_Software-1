@@ -39,30 +39,26 @@
         </label>
     </div>
     <h1>Entradas Compradas</h1>
-    <div class="bloqueEvento">
         {% if not entrada_info  %}
-            <p style="font-size: 14px;">No tienes entradas compradas para ningún evento.</p>
+            <p>No tienes entradas compradas para ningún evento.</p>
         {% else %}
-            {% for e in entrada_info %}
-                <div class="evento">
-                    <div class="evento__detalles">
-                        <h4><strong>{{ e.evento }}</strong></h4>
-                        <p><strong>Fecha:</strong> {{ e.evento.fecha }}</p>
-                        {% if e.entrada.entrada_general > 0 and e.entrada.entrada_vip > 0 %}
-                            <p><strong>Entrada General:</strong> {{ e.entrada.entrada_general }}</p>
-                            <p><strong>Entrada VIP:</strong> {{ e.entrada.entrada_vip }}</p>
-                        {% elif e.entrada.entrada_general > 0 and e.entrada.entrada_vip == 0 %}
-                            <p><strong>Entrada General:</strong> {{ e.entrada.entrada_general }}</p>
-                        {% elif e.entrada.entrada_vip > 0 and e.entrada.entrada_general == 0 %}
-                            <p><strong>Entrada VIP:</strong> {{ e.entrada.entrada_vip }}</p>
-                        {% endif %}
-                        <a class="btn btn-primary" href="{% url 'entrada_info' e.entrada.id %}">Más detalles</a>
-                    </div>
-                    <div>
-                        <img src="{{ e.evento.foto.url }}" alt="Código QR" width="300" height="200" style="border-radius: 1em;">
-                    </div>
+            <div class="Contenido">
+                <div class="conteos">
+                    <p>Todos (<span>{{ entrada_info|length }}</span>)</p>
                 </div>
-            {% endfor %}
+            </div>
+            <div class="bloqueEntradas">
+                    {% for e in entrada_info %}
+                        <a href="{% url 'entrada_info' e.entrada.id %}">
+                            <div class="entrada">
+                                <img src="{{ e.evento.foto.url }}" alt="{{ e.evento.nombre }}">
+                                <div class="entrada-informacion">
+                                    <p class="entrada-evento">{{ e.evento.nombre }}</p>
+                                    <p class="entrada-fecha">{{ e.evento.fecha }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
         {% endif %}
     </div>
 {% endblock %}

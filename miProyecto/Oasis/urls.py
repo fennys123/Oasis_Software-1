@@ -66,11 +66,13 @@ urlpatterns = [
 
     #USUARIOS
     path('Gestion_Usuarios/', views.guInicio, name='guInicio'),
-    path('Usuarios_Bloqueados/', views.guUsuariosBloqueados, name='guUsuariosBloqueados'),
-
     path('Usuarios_Eliminados/<int:id>', views.guUsuariosEliminados, name='guUsuariosEliminados'),
     path('Usuarios_Actualizar/<int:id>', views.guUsuariosActualizar, name='guUsuariosActualizar'),
     path('guUsuariosCrear/', views.guUsuariosCrear, name='guUsuariosCrear'),
+
+    path('Usuarios_Bloqueados/', views.guUsuariosBloqueados, name='guUsuariosBloqueados'),
+    path('Bloquear_Usuario/<int:id>', views.guBloquearUsuario, name='guBloquearUsuario'),
+    path('Desbloquear_Usuario/<int:id>', views.guDesbloquearUsuario, name='guDesbloquearUsuario'),
 
 
     #CRUD INVENTARIO

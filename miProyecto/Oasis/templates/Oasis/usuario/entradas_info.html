@@ -5,69 +5,130 @@
 
 {% block titulo %}Entradas{% endblock %}
 
-{% block Opciones %}
-    <li class="nav-item lateralOpciones2">
-        <a class="nav-link text-white" href="{% url 'ver_perfil' %}">
-          Inicio                    
-        </a>
-    </li>
-    {% if user.rol == 4 %}
-        <li class="nav-item lateralOpciones2">
-            <a class="nav-link text-white" href="{% url 'ver_detalles_pedido_usuario' %}">
-            Pedidos activos                   
-            </a>
-        </li>
-        <li class="nav-item lateralOpciones2">
-            <a class="nav-link text-white" href="{% url 'ver_ventas' %}">
-            Historial de pedidos                   
-            </a>
-        </li>
-        <li class="nav-item lateralOpciones2">
-            <a class="nav-link text-white" href="{% url 'reservas_usuario' %}">
-            Reservas                    
-            </a>
-        </li>
-        <li class="nav-item lateralOpciones2">
-          <a class="nav-link text-white" href="{% url 'entradas_usuario' %}">
-          Entradas
-          </a>
-        </li>
-    {% else %}
-        <li class="nav-item lateralOpciones2">
-            <a class="nav-link text-white" href="{% url 'ver_ventas' %}">
-            Historial de Ventas                   
-            </a>
-        </li>
-    {% endif %}
-{% endblock %}
-
-
 
 {% block contenedor %}
-    <h1>{{ evento.nombre }}</h1>
-    <div class="w-100 d-flex justify-content-between" style="height:auto; padding: 3% 2%">
-        <div class="d-flex" style="width: 40%;">
-            <img src="{{ evento.foto.url }}" class="card-img-top" alt="Evento" style="height: 300px; width: 100%; border-radius: 30px;"> 
-        </div>
-        <div style="width:58%; overflow-wrap: break-word; word-wrap: break-word">
-            <h6 class="card-text">{{ evento.descripcion }}</h6>
-            <br>
-            <h5 class="card-text"><strong>Fecha: </strong>{{ evento.fecha }}</h5>
+    <div class="radio-inputs many">
+        <label class="radio">
+        <a href="{% url 'ver_perfil' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Inicio</span> 
+        </a>
+        </label>
+        <label class="radio">
+            <a href="{% url 'ver_detalles_pedido_usuario' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Pedidos activos</span>
+            </a>
+        </label>
+        <label class="radio">
+            <a href="{% url 'ver_ventas' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Historial de pedidos</span>
+            </a>
+        </label>
+        <label class="radio">
+            <a href="{% url 'reservas_usuario' %}">
+            <input type="radio" name="radio"/>
+            <span class="name">Reservas</span>
+            </a>
+        </label>
+        <label class="radio">
+            <a href="{% url 'entradas_usuario' %}">
+            <input type="radio" name="radio" checked=""/>
+            <span class="name">Entradas</span>
+            </a>
+        </label>
+    </div>
+
+    <h1>Información de la compra</h1>
+
+
+    <div class="detalle-entrada">
+        <img src="{{ evento.foto.url }}" alt="{{ evento.nombre }}" >
+        <div class="info-entrada">
+            <div class="cabecera">
+                <div>
+                    <p class="titulo-evento">{{ evento.nombre }}</p>
+                    <p>{{ evento.fecha }}</p>
+                </div>
+            </div>
             {% if entrada.entrada_general > 0 and entrada.entrada_vip > 0 %}
-                <h5><strong>Entrada General:</strong> {{ entrada.entrada_general }}</h5>
-                <h5><strong>Entrada VIP:</strong> {{ entrada.entrada_vip }}</h5>
+                <div class="body">
+                    <p><b>Entrada general</b></p>
+                    <p>{{ entrada.entrada_general }}</p>
+                </div>
+                <div class="body">
+                    <p><b>Entrada vip</b></p>
+                    <p>{{ entrada.entrada_vip }}</p>
+                </div>
             {% elif entrada.entrada_general > 0 and entrada.entrada_vip == 0 %}
-                <h5><strong>Entrada General:</strong> {{ entrada.entrada_general }}</h5>
-            {% elif entrada.entrada_vip > 0 and entrada.entrada_general == 0 %}
-                <h5><strong>Entrada VIP:</strong> {{ entrada.entrada_vip }}</h5>
+                <div class="body">
+                    <p><b>Entrada general</b></p>
+                    <p>{{ entrada.entrada_general }}</p>
+                </div>
+            {% elif entrada.entrada_general == 0 and entrada.entrada_vip > 0 %}
+                <div class="body">
+                    <p><b>Entrada vip</b></p>
+                    <p>{{ entrada.entrada_vip }}</p>
+                </div>
             {% endif %}
-            <h5><strong>Total Pagado:</strong> {{ entrada.total|intcomma }}</h5>
-            <br>
-            <p style="color: #fc4664;">Esta entrada es válida para<strong> {{ total_personas }}</strong> personas</p>
+            <div class="body">
+                <p><b>Fecha de la compra</b></p>
+                <p>{{ entrada.fecha_compra }}</p>
+            </div>
+            <div class="body">
+                <p><b>Total pagado</b></p>
+                <p>${{ entrada.total|intcomma }}</p>
+            </div>
+            <div class="body">
+                {% if total_personas == 1 %}
+                    <p><b>Esta entrada es válida para {{ total_personas }} persona</b></p>
+                {% else %}
+                    <p><b>Esta entrada es válida para {{ total_personas }} personas</b></p>
+                {% endif %}
+            </div>
         </div>
     </div>
-    <h1 style="margin-top: 0.5em;">Información importante</h1>
-    <div class="w-100 d-flex justify-content-between" style="height:auto; padding: 3% 2%">
-        <p>hola</p>
+
+    <div class="seccion_qr">
+        <div class="info">
+            <p><b>QR</b></p>
+            <img src="{% static 'Oasis/img/qr.png' %}" alt="qr" data-toggle="modal" data-target="#verQr">
+        </div>
+    </div>
+
+
+    <div class="seccion_info_importante">
+        <div class="info">
+            <p><b>Instrucciones de llegada</b></p>
+            <p>Al llegar, ¡No hagas fila!, puedes presentar el código QR en la entrada para acceder a tu mesa.</p>
+        </div>
+        <div class="info">
+            <p><b>Recomendaciones para la Noche</b></p>
+            <p>No olvides revisar el menú, disponible directamente desde tu mesa escaneando el código QR.</p>
+        </div>
+        <div class="info">
+            <p><b>Contacto</b></p>
+            <p>Si tienes alguna duda o inconveniente con tu reserva, no dudes en contactarnos al (+57) 305 277 7073 o (+57) 321 123 4567 o por correo electrónico a reservas@oasisdiscoteca.com. Estamos aquí para ayudarte.</p>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verQr" tabindex="-1" role="dialog" aria-labelledby="verQrLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="tituloFormulario">Ver código QR</p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div> 
+                <div class="modal-body">
+                    <p> El código QR que aparece aquí también será enviado a tu correo electrónico. Este código es necesario para ingresar al evento.</p>
+                    <div class="w-100 d-flex justify-content-center"    >
+                        <img src="{% static 'Oasis/img/qr.png' %}" alt="mapa" width="50%">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

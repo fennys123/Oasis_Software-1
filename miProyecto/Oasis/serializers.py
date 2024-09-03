@@ -10,6 +10,11 @@ class UsuarioSerializer(serializers.HyperlinkedModelSerializer, serializers.Mode
         model = Usuario
         fields = ['id', 'nombre', 'email', 'password', 'cedula', 'fecha_nacimiento', 'rol', 'estado', 'foto', 'token_recuperar']
 
+class BloqueoSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Bloqueo
+        fields = ['id', 'usuario', 'motivo', 'fecha_bloqueo', 'realizado_por']
+
 class EventoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Evento

@@ -39,6 +39,16 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.nombre
+    
+
+class Bloqueo(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="bloqueos")
+    motivo = models.TextField()
+    fecha_bloqueo = models.DateTimeField(auto_now_add=True)
+    realizado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="bloqueos_realizados")
+    
+    def __str__(self):
+        return self.usuario.nombre
 
 class Evento(models.Model):
     nombre = models.CharField(max_length=150)

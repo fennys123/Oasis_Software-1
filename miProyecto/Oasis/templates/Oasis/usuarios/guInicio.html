@@ -68,56 +68,6 @@
     </table>
   </div>
 
-    
-    <div class="modal" id="myModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Detalles de Usuario</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body">
-                <div>
-                  <form>
-                    <div class="mb-3">
-                      <label for="exampleInputEmail1" class="form-label">Nombre del usuario</label>
-                      <input type="text" class="form-control" readonly>
-                    </div>
-                    <div class="mb-3">
-                      <label>Estado</label>
-                      <div class="dropdown dropend">
-                          <button id="botonDropdown" type="button" class="btn bg-transparent dropdown-toggle" data-bs-toggle="dropdown">
-                            Activo
-                          </button>
-                          <ul class="dropdown-menu">
-                            <li><a class="dropdown-item disabled" href="#">Bloqueado</a></li>
-                          </ul>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                      <label>Pedidos</label>
-                    </div>
-                    <div class="mb-3">
-                      <button class="btn btn-primary" readonly>Pedido#3</button>
-                    </div>
-                    <div class="mb-3">
-                      <label>Reservas</label>
-                    </div>
-                    <div class="mb-3">    
-                      <button class="btn btn-primary">Reserva#5</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-              </div>
-    
-        </div>
-      </div>
-    </div>
-
-
 
     {% for c in data %}
       <div class="modal fade" id="verUsuario{{ c.id }}" tabindex="-1" role="dialog" aria-labelledby="verUsuarioLabel" aria-hidden="true">
@@ -143,6 +93,7 @@
                         <div class="ver_usuario_botones">
                           <a type="button" class="btn btn-primary">Pedidos</a>
                           <a type="button" class="btn btn-primary">Reservas</a>
+                          <button type="button" class="btn btn-danger" data-dismiss="modal" data-toggle="modal" data-target="#bloquearUsuario{{ c.id }}">Bloquear</button>
                         </div>
                       </div>
                     </div>
@@ -276,6 +227,35 @@
                     <button class="btn btn-success mb-2 mt-2" type="submit">Editar Usuario</button>
                   </form>
               </div>
+          </div>
+      </div>
+    </div>
+  {% endfor %}
+
+
+
+  {% for c in data %}
+  <div class="modal fade" id="bloquearUsuario{{ c.id }}" tabindex="-1" role="dialog" aria-labelledby="bloquearUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="tituloFormulario">Bloquear usuario</p>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{% url 'guBloquearUsuario' c.id %}">
+              {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                      <label for="motivo" class="form-label">Motivo</label>
+                      <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-danger">Bloquear</button>
+                </div>
+            </form>
           </div>
       </div>
     </div>

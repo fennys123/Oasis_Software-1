@@ -41,7 +41,7 @@
     </div>
     <h1>Reservas</h1>
     {% if not reservas_info  %}
-        <p style="font-size: 14PX;">No tienes reservas de mesas para ningún evento.</p>
+        <p>No tienes reservas de mesas para ningún evento.</p>
     {% else %}
     <div class="Contenido">
         <div class="conteos">
@@ -50,15 +50,15 @@
     </div>
         <div class="bloqueEvento">
             {% for r in reservas_info %}
-                <div class="evento">
-                    <div class="evento_contenedor">
-                        <p class="evento_mesa">{{ r.reserva.mesa.nombre }}</p>
-                        <div>
-                            <img src="{{ r.evento.foto.url }}" alt="{{ r.evento }}" width="300" height="200">
+                <a href="{% url 'reserva_info' r.reserva.id %}">
+                    <div class="evento">
+                        <img src="{{ r.evento.foto.url }}" alt="{{ r.evento }}">
+                        <div class="evento-información">
+                            <p class="evento-nombre">{{ r.evento.nombre }}</p>
+                            <p class="evento-mesa">{{ r.reserva.mesa.nombre }}</p>
                         </div>
                     </div>
-                    <a class="btn btn-primary w-100" href="{% url 'reserva_info' r.reserva.id %}">Más detalles</a>
-                </div>
+                </a>
             {% endfor %}
         {% endif %}
     </div>
