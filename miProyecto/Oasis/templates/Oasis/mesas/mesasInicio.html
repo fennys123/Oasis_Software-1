@@ -156,11 +156,11 @@
                     </div>
                   </div>
                   <div class="ver_mesa_botones">
-                    {% if m.estado == 'Disponible' %}
-                      <button class="btn btn-primary">Pedidos</button>
+                    {% if m.estado == 'Activa' %}
+                      <a class="btn btn-primary">Pedidos</a>
                     {% endif %}
                     {% if m.estado_reserva == 'Reservada' %}
-                      <button class="btn btn-primary">Reservas</button>
+                      <a href="{% url 'reservasMesa' m.id %}" class="btn btn-primary">Reservas</a>
                     {% endif %}
                   </div>
               </div>

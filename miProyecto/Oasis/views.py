@@ -658,6 +658,18 @@ def eliminarMesa(request, id):
     return redirect('Mesas')
 
 
+def reservasMesa(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    
+    try:
+        q = Reserva.objects.filter(mesa = id)
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+
+    return render(request, "Oasis/mesas/reservasMesa.html", {'user': user, 'mesa': Mesa.objects.get(pk = id),'reservas' : q})
+
+
 
 #EVENTOS
 
@@ -1438,11 +1450,10 @@ def crear_pedido_admin(request, id):
 
 
 class token_qr(APIView):
-    def post(self, request):
-        print(request.data)
+    def get(self, request, mesa, email):
         try:
-            mesa = Mesa.objects.get(codigo_qr = request.data['mesa'])
-            user = Usuario.objects.get(email=request.data['email'])
+            mesa = Mesa.objects.get(codigo_qr = mesa)
+            user = Usuario.objects.get(email= email)
             if mesa:
                 mesa.estado = mesa.ACTIVA
                 mesa.usuario = user

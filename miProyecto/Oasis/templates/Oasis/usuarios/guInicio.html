@@ -53,7 +53,7 @@
       </thead>
       <tbody>
         {% for c in data %}
-          <tr>
+          <tr class="flex-wrap">
             <td data-label="Nombre">{{ c.nombre }}</td>
             <td data-label="Email">{{ c.email }}</td>
             <td data-label="Rol">{{ c.get_rol_display }}</td>

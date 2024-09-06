@@ -27,8 +27,8 @@ urlpatterns = [
     path('api/1.0/', include(router.urls)),
     path('api/1.0/token-auth/', views.CustomAuthToken.as_view()),
 	path('api/1.0/api-auth/', include('rest_framework.urls')),
-	path('api/1.0/token_qr/', views.token_qr.as_view()),
-    path('api/1.0/url_prueba/', views.url_prueba .as_view()),
+	path('api/1.0/token_qr/<str:mesa>/<str:email>/', views.token_qr.as_view()),
+    path('api/1.0/url_prueba/', views.url_prueba.as_view()),
 
 
 
@@ -112,6 +112,8 @@ urlpatterns = [
     path('Agregar_Mesa/', views.crearMesa, name='crearMesa'),
     path('Actualizar_Mesa/<int:id>', views.mesaActualizar, name='mesaActualizar'),
     path('Eliminar_Mesa/<int:id>', views.eliminarMesa, name='eliminarMesa'),
+
+    path('reservasMesa/<int:id>', views.reservasMesa, name='reservasMesa'),
 
 
 
