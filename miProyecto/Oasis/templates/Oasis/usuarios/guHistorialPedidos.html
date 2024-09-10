@@ -8,77 +8,38 @@
 
 
 {% block contenedor %}
-  <div class="radio-inputs many">
-    <label class="radio">
-      <a href="{% url 'ver_perfil' %}">
-        <input type="radio" name="radio" />
-        <span class="name">Inicio</span> 
-      </a>
-    </label>
-    {% if user.rol == 4 %}
-      <label class="radio">
-        <a href="{% url 'ver_detalles_pedido_usuario' %}">
-          <input type="radio" name="radio" />
-          <span class="name">Pedidos activos</span>
+    <div class="radio-inputs many">
+        <label class="radio">
+        <a href="{% url 'guInicio' %}">
+            <input type="radio" name="radio" checked="" />
+            <span class="name">Inicio</span>
         </a>
-      </label>
-      <label class="radio">
-        <a href="{% url 'ver_ventas' %}">
-          <input type="radio" name="radio" checked=""/>
-          <span class="name">Historial de pedidos</span>
+        </label>
+        <label class="radio">
+        <a href="{% url 'guUsuariosBloqueados' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Usuarios Bloqueados</span>
         </a>
-      </label>
-      <label class="radio">
-        <a href="{% url 'reservas_usuario' %}">
-          <input type="radio" name="radio" />
-          <span class="name">Reservas</span>
-        </a>
-      </label>
-      <label class="radio">
-        <a href="{% url 'entradas_usuario' %}">
-          <input type="radio" name="radio" />
-          <span class="name">Entradas</span>
-        </a>
-      </label>
-    {% else %}
-      <label class="radio">
-          <a href="{% url 'ver_ventas' %}">
-          <input type="radio" name="radio" checked=""/>
-          <span class="name">Historial de Ventas</span>
-          </a>
-      </label>
-      <label class="radio">
-          <a href="{% url 'ver_mesas_a_cargo' %}">
-          <input type="radio" name="radio"/>
-          <span class="name">Mesas a cargo</span>
-          </a>
-      </label>
-    {% endif %}
-  </div>
+        </label>
+    </div>
 
 
 
-    {% if user.rol ==  4 %}
-        <h1>Historial de Pedidos</h1>
-    {% else %}
-        <h1>Historial de Ventas</h1>
-    {% endif %}
+    <h1>Historial de Pedidos</h1>
+
     <div class="Contenido">
         <div class="conteos">
             <p>Todos (<span>{{ total_pedidos }}</span>)</p>
         </div>
     </div>
 
+    <small>Usuario: {{ usuario_historial_pedidos.nombre }}</small>
     <div id="contenedorTabla">
       <table class="table">
         <thead class="thead-light">
           <tr>
             <th>Mesa</th>
-            {% if user.rol == 4 %}
-              <th>Fecha</th>
-            {% else %}
-              <th>Cliente</th>
-            {% endif %}
+            <th>Fecha</th>
             <th>Total</th>
             <th>Acciones</th>
           </tr>
@@ -87,11 +48,7 @@
           {% for p in detalles_pedidos %}
             <tr>
               <td data-label="Mesa">{{ p.pedido.mesa.nombre }}</td>
-              {% if user.rol == 4 %}
-                <td data-label="Fecha">{{ p.pedido.fecha }}</td>
-              {% else %}
-                <td data-label="Cliente">{{ p.pedido.usuario.nombre }}</td>
-              {% endif %}
+              <td data-label="Fecha">{{ p.pedido.fecha }}</td>
               <td data-label="Total">${{ p.pedido.total|intcomma }}</td>
               <td data-label="Acciones">
                 <button type="button" class="btn btn-info" data-toggle="modal" data-target="#detalleModal{{ p.pedido.id }}"><i class="bi bi-info-circle"></i></button>
@@ -145,7 +102,6 @@
                     </div>
                     <h6 style="text-align: end; margin-top: 0.5em;"><strong>Total: ${{ detalle_pedido.pedido.total|intcomma }}</strong></h6>
                 </div>
-                <!-- Añadimos los picos aquí -->
                 <div class="picos-container">
                     {% for i in "1234567890123456789012" %}
                         <span class="pico"></span>

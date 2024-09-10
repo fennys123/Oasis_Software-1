@@ -58,6 +58,8 @@ urlpatterns = [
     path('reservas/', views.reservas_usuario, name='reservas_usuario'),
     path('reservas_info/<int:id>/', views.reservas_usuario_info, name='reserva_info'),
 
+    path('ver_mesas_a_cargo/', views.ver_mesas_a_cargo, name='ver_mesas_a_cargo'),
+
 
 
     #CAMBIAR CONTRASEÑA
@@ -69,6 +71,10 @@ urlpatterns = [
     path('Usuarios_Eliminados/<int:id>', views.guUsuariosEliminados, name='guUsuariosEliminados'),
     path('Usuarios_Actualizar/<int:id>', views.guUsuariosActualizar, name='guUsuariosActualizar'),
     path('guUsuariosCrear/', views.guUsuariosCrear, name='guUsuariosCrear'),
+    
+    path('gu_reservas_usuario/<int:id>', views.gu_reservas_usuario, name='gu_reservas_usuario'),
+	path("gu_historial_pedidos/<int:id>", views.gu_historial_pedidos_usuario, name="gu_historial_pedidos_usuario"),
+
 
     path('Usuarios_Bloqueados/', views.guUsuariosBloqueados, name='guUsuariosBloqueados'),
     path('Bloquear_Usuario/<int:id>', views.guBloquearUsuario, name='guBloquearUsuario'),
@@ -175,8 +181,16 @@ urlpatterns = [
 
     path('pagar_pedido/<int:id>/<str:rol>/', views.pagar_pedido, name='pagar_pedido'),
     path('entregar_pedido/<int:id>/', views.entregar_pedido, name='entregar_pedido'),
+
     path('cancelar_pedido/', views.cancelar_pedido, name='cancelar_pedido'),
+    path('cancelar_pedido_sin_comentario/<int:id_pedido>/<str:ruta>/', views.cancelar_pedido_sin_comentario, name='cancelar_pedido_sin_comentario_sin_mesa'),
+    path('cancelar_pedido_sin_comentario/<int:id_pedido>/<int:id_mesa>/<str:ruta>/', views.cancelar_pedido_sin_comentario, name='cancelar_pedido_sin_comentario'),
+
+
     path('eliminar_producto/', views.eliminar_item, name='eliminar_producto'),
+    path('eliminar_producto_sin_comentario/<int:id_producto>/<str:ruta>/', views.eliminar_item_sin_comentario, name='eliminar_item_sin_comentario_sin_mesa'),
+    path('eliminar_producto_sin_comentario/<int:id_producto>/<int:id_mesa>/<str:ruta>/', views.eliminar_item_sin_comentario, name='eliminar_item_sin_comentario'),
+
     path('liberar_mesa/<int:id>/', views.liberar_mesa, name='liberar_mesa'),
 
 

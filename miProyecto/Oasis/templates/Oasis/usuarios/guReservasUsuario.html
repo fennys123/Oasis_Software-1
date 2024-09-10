@@ -2,28 +2,37 @@
 {% load static %}
 {% load humanize %}
 
-{% block titulo %}Mesas{% endblock %}
+{% block titulo %}Reservas{% endblock %}
 
 {% block contenedor %}
-  <div class="radio-inputs">
+  <div class="radio-inputs many">
     <label class="radio">
-      <a href="{% url 'Mesas' %}">
+      <a href="{% url 'guInicio' %}">
         <input type="radio" name="radio" checked="" />
         <span class="name">Inicio</span>
       </a>
     </label>
+    <label class="radio">
+      <a href="{% url 'guUsuariosBloqueados' %}">
+        <input type="radio" name="radio" />
+        <span class="name">Usuarios Bloqueados</span>
+      </a>
+    </label>
   </div>
-  <h1>Reservas {{ mesa.nombre }}</h1>
+
+  <h1>Reservas</h1>
   <div class="Contenido">
       <div class="conteos">
         <p>Todos (<span> {{ reservas|length }} </span>)</p>
       </div>
   </div>
+
+  <small>Usuario: {{ usuarioReserva }}</small>
   <div id="contenedorTabla">
     <table class="table">
       <thead class="thead-light">
         <tr>
-          <th>Usuario</th>
+          <th>Mesa</th>
           <th>Evento</th>
           <th>Fecha</th>
           <th>Acciones</th>
@@ -32,7 +41,7 @@
       <tbody>
         {% for r in reservas %}
           <tr>
-            <td data-label="Usuario">{{ r.usuario }}</td>
+            <td data-label="Usuario">{{ r.mesa }}</td>
             <td data-label="Evento">{{ r.evento }}</td>
             <td data-label="Fecha">{{ r.evento.fecha }}</td>
             <td data-label="Acciones">
@@ -55,7 +64,7 @@
                       <span aria-hidden="true">&times;</span>
                   </button>
               </div>
-              <div class="modal-body">
+              <div class="modal-body">  
                 <div class="d-flex justify-content-center">
                     <img src="{{ r.evento.foto.url }}" alt="{{ r.evento.nombre }}" class="rounded" width="50%">
                 </div>

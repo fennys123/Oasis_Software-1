@@ -39,9 +39,6 @@
     font-size: 14px;
 }
 
-.contenedor_ver_usuario .ver_usuario_botones{
-    margin-top: 20px;
-}
 
 @media screen and (max-width: 601px) {
     .contenedor_ver_usuario{

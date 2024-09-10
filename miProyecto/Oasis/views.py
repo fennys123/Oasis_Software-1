@@ -274,6 +274,13 @@ def guInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
     q = Usuario.objects.filter(estado=1)
+
+    for usuario in q:
+        usuario.cantidad_reservas = Reserva.objects.filter(usuario=usuario).count()
+
+    for usuario in q:
+        usuario.cantidad_pedidos = HistorialPedido.objects.filter(usuario=usuario).count()
+
     usuarioAdmin = Usuario.objects.filter(rol=1).count()
     usuarioBartender = Usuario.objects.filter(rol=2).count()
     usuarioMesero = Usuario.objects.filter(rol=3).count()
@@ -369,6 +376,45 @@ def guUsuariosActualizar(request, id):
 
     return redirect('guInicio')
 
+
+def gu_reservas_usuario(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    
+    usuario_reservas = Usuario.objects.get(pk=id)
+    try:
+        q = Reserva.objects.filter(usuario = id)
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+
+    return render(request, "Oasis/usuarios/guReservasUsuario.html", {'user': user, 'usuarioReserva': usuario_reservas, 'reservas' : q})
+
+
+def gu_historial_pedidos_usuario(request, id):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    
+    usuario_historial_pedidos = Usuario.objects.get(pk=id)
+    try:
+        historial_pedidos = HistorialPedido.objects.filter(usuario=usuario_historial_pedidos).order_by('-fecha')
+        
+        detalles_pedidos = []
+        for historial_pedido in historial_pedidos:
+            detalles = HistorialDetallePedido.objects.filter(historial_pedido=historial_pedido)
+            detalles_pedidos.append({
+                'pedido': historial_pedido,
+                'detalles': detalles
+            })
+
+        total_pedidos = historial_pedidos.count()
+            
+        contexto = {'user':user, 'usuario_historial_pedidos':usuario_historial_pedidos, 'detalles_pedidos': detalles_pedidos, 'total_pedidos': total_pedidos}
+
+        return render(request, "Oasis/usuarios/guHistorialPedidos.html", contexto)
+    
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+    
 
 def guUsuariosBloqueados(request):
     logueo = request.session.get("logueo", False)
@@ -808,30 +854,7 @@ def eveReserva(request, id):
     evento = Evento.objects.get(id=id)
     reservas = Reserva.objects.filter(evento=evento)
 
-    reservas_info = []
-    for reserva in reservas:
-        reserva_info = {
-            'reserva': reserva,
-            'mesa_reservada': reserva.mesa,
-        }
-        reservas_info.append(reserva_info)
-
-    todas_las_mesas = Mesa.objects.all()
-
-    mesas_reservadas = [reserva.mesa for reserva in reservas]
-
-    mesas_no_reservadas = [mesa for mesa in todas_las_mesas if mesa not in mesas_reservadas]
-
-    total_reservadas = len(mesas_reservadas)
-
-    contexto = {
-        'user': user,
-        'evento': evento,
-        'totalReservadas': total_reservadas,
-        'reservasInfo': reservas_info,
-        'mesasNoReservadas': mesas_no_reservadas,
-        'url': 'Reservas'
-    }
+    contexto = {'user': user, 'reservas': reservas, 'evento': evento}
 
     return render(request, 'Oasis/eventos/eveReserva.html', contexto)
 
@@ -1534,6 +1557,9 @@ def crear_pedido_usuario(request, id):
 
 
 def pagar_pedido(request, id, rol):
+    logueo = request.session.get("logueo", False)
+    usuario = Usuario.objects.get(pk=logueo["id"])
+
     try:
         mesa = Mesa.objects.get(pk=id)
         # Filtrar pedidos excluyendo los cancelados
@@ -1547,8 +1573,6 @@ def pagar_pedido(request, id, rol):
             else:
                 messages.error(request, "No hay pedidos para esta mesa.")
                 return redirect('peGestionMesas')
-
-        usuario = pedidos.first().usuario
 
         # Verificar si algún pedido está en preparación
         if any(pedido.estado == pedido.PREPARACION for pedido in pedidos):
@@ -1626,6 +1650,7 @@ def ver_pedidos_mesa(request, mesa_id):
 
     for pedido in pedidos:
         detalles = DetallePedido.objects.filter(pedido=pedido)
+        detalles_activos_count = detalles.filter(estado='Activo').count()
         subtotal_pedido = 0
 
         for detalle in detalles:
@@ -1635,6 +1660,7 @@ def ver_pedidos_mesa(request, mesa_id):
         detalles_pedidos.append({
             'pedido': pedido,
             'detalles': detalles,
+            'detalles_activos_count': detalles_activos_count
         })
 
         if pedido.estado != 'Cancelado':
@@ -1675,6 +1701,23 @@ def ver_historial_pedidos(request):
     return render(request, "Oasis/pedidos/peHistorial.html", contexto)
 
 
+def ver_mesas_a_cargo(request):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+
+    try:
+        mesas = Mesa.objects.filter(usuario=user)
+
+        contexto = {
+            'user':user, 'mesas':mesas
+        }
+        return render(request, "Oasis/usuario/mesas_a_cargo.html", contexto)
+    
+    except Exception as e:
+        messages.error(request, f"Ocurrió un Error: {e}")
+    
+
+
 def entregar_pedido(request, id):
     try:
         pedido = Pedido.objects.get(pk=id)
@@ -1704,6 +1747,23 @@ def cancelar_pedido(request):
     return redirect('peInicio')
 
 
+def cancelar_pedido_sin_comentario(request, id_pedido, id_mesa=None, ruta=None):
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+        pedido.estado = pedido.CANCELADO
+        pedido.comentario = ""
+        pedido.save()
+        messages.success(request, "Pedido cancelado exitosamente.")
+    except Exception as e:
+        return messages.error(request, f'Ocurrio un error {e}')
+    
+    if id_mesa:
+        return redirect(f'/{ruta}/{id_mesa}')
+    else:
+        return redirect(f'/{ruta}/')
+
+
+
 def eliminar_item(request):
     if request.method == 'POST':
         producto_id = request.POST.get('producto_id')
@@ -1723,6 +1783,25 @@ def eliminar_item(request):
             messages.error(request, f'Ocurrió un error: {e}')
     
     return redirect('peInicio')
+
+
+
+def eliminar_item_sin_comentario(request, id_producto, id_mesa=None, ruta=None):
+    try:
+        detalle = DetallePedido.objects.get(pk=id_producto)
+        detalle.estado = detalle.ELIMINADO
+        detalle.motivo_eliminacion = ""
+        detalle.save()
+
+        messages.success(request, 'Producto eliminado del pedido con éxito.')
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error: {e}')
+
+    if id_mesa:
+        return redirect(f'/{ruta}/{id_mesa}')
+    else:
+        return redirect(f'/{ruta}/')
+    
 
 def liberar_mesa(request, id):
     try:
@@ -1806,6 +1885,7 @@ def ver_detalles_usuario(request):
 
     for pedido in pedidos:
         detalles = DetallePedido.objects.filter(pedido=pedido)
+        detalles_activos_count = detalles.filter(estado='Activo').count()
         subtotal_pedido = 0
 
         for detalle in detalles:
@@ -1815,6 +1895,7 @@ def ver_detalles_usuario(request):
         detalles_pedidos.append({
             'pedido': pedido,
             'detalles': detalles,
+            'detalles_activos_count': detalles_activos_count
         })
 
         if pedido.estado != 'Cancelado':

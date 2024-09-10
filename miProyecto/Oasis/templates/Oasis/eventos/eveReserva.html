@@ -13,69 +13,74 @@
         </a>
         </label>
     </div>
-    <h1>{{ evento.nombre }}</h1>
+    <h1>Reservas {{ evento }}</h1>
     <div class="Contenido">
         <div class="conteos">
-        <p>Mesas reservadas (<span>{{ totalReservadas }}</span>)</p>
-        </div>
-        <div class="search">
-            <input  type="text" id="myInput" placeholder="Buscar mesa...">
-            <button id="searchButton" type="submit">Buscar</button>
+            <p>Todos (<span> {{ reservas|length }} </span>)</p>
         </div>
     </div>
-    <div class="mesas">
-        {% for reserva_info in reservasInfo %}
-            <div class="tarjetaActiva">
-                <section class="mesaActiva">
-                    <h4>{{ reserva_info.mesa_reservada.nombre }}</h4>
-                    <p>Reservada</p>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal{{ forloop.counter }}">
-                        Ver
-                    </button>
-                </section>
-            </div>
-        {% endfor %}
-        {% for m in mesasNoReservadas %}
-            <div class="tarjetaDisponible">
-                <section class="mesaDisponible">
-                    <h4>{{ m.nombre }}</h4>
-                    <p>Disponible</p>
-                </section>
-            </div>
-        {% endfor %}
+    <div id="contenedorTabla">
+        <table class="table">
+          <thead class="thead-light">
+            <tr>
+              <th>Mesa</th>
+              <th>Usuario</th>
+              <th>Evento</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reservas %}
+              <tr>
+                <td data-label="Mesa">{{ r.mesa.nombre }}</td>
+                <td data-label="Usuario">{{ r.usuario.nombre }}</td>
+                <td data-label="Evento">{{ r.evento.nombre }}</td>
+                <td data-label="Fecha">{{ r.evento.fecha }}</td>
+                <td data-label="Acciones">
+                  <button type="button" class="btn btn-info" data-toggle="modal" data-target="#verReserva{{ r.id }}"><i class="bi bi-info-circle"></i></button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
 
-        {% for reserva_info in reservasInfo %}
-            <div class="modal" id="myModal{{ forloop.counter }}">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 class="modal-title modal_titulo">{{ reserva_info.mesa_reservada.nombre }}</h3>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        {% for r in reservas %}
+            <div class="modal fade" id="verReserva{{ r.id }}" tabindex="-1" role="dialog" aria-labelledby="verReservaLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <p class="tituloFormulario">Ver reserva</p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-center">
+                            <img src="{{ r.evento.foto.url }}" alt="{{ r.evento.nombre }}" class="rounded" width="50%">
                         </div>
-                        <div class="modal-body modal_info">
-                            <h5 style="text-align: center;"><b>{{ reserva_info.reserva.evento.nombre }}</b></h5>
-                            <div class="modal_info_img">
-                                <img  src="{{ reserva_info.reserva.evento.foto.url }}" alt="{{ reserva_info.reserva.evento.nombre }}" class="img-fluid" style="height: 180px; width: 80%; border-radius: 30px;">
-                            </div>
+                        <div class="d-flex flex-column justify-content-center align-items-center mt-3">
+                            <p class="m-0"><strong>{{ r.evento.nombre }}</strong></p>
+                            <small>{{ r.evento.fecha }}</small>
                             <br>
-                            <h5><b>Cliente: </b>{{ reserva_info.reserva.usuario.nombre }}</h5>
-                            <h5><b>Correo: </b>{{ reserva_info.reserva.usuario.email }}</h5>
-                            <h5><b>CC: </b>{{ reserva_info.reserva.usuario.cedula }}</h5>
-                            <h5><b>Fecha de compra: </b>{{ reserva_info.reserva.fecha_compra }}</h5>
-                            <h5><b>Mesa x{{ reserva_info.mesa_reservada.capacidad }} personas</b></h5>
-                            <div id="totalModal" class="modal-body">
-                                <h4><b>Total pagado: {{ reserva_info.reserva.total|intcomma }}</b></h4>
-                            </div>
+                            <p class="m-0"><strong>Info de la reserva</strong></p>
+                            <small>Usuario: {{ r.usuario.nombre }}</small>
+                            <small>Correo: {{ r.usuario.email }}</small>
+                            <small>CC: {{ r.usuario.cedula }}</small>
+                            <small>Fecha de compra: {{ r.fecha_compra }}</small>
+                            <small>Total pagado: $ {{ r.total|intcomma }}</small>
+                            <br>
+                            <p class="m-0"><strong>{{ r.mesa.nombre }} x {{ r.mesa.capacidad }} personas</strong></p>
                         </div>
-                        <div class="modal-footer">
-                            <div id="opcionBotones">
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-success" data-bs-dismiss="modal">LLegada al bar</button>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success w-100" data-dismiss="modal">Llegada al bar</button>
                     </div>
                 </div>
             </div>
+            </div>
         {% endfor %}
+
 {% endblock %}

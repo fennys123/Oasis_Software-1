@@ -157,7 +157,7 @@
                   </div>
                   <div class="ver_mesa_botones">
                     {% if m.estado == 'Activa' %}
-                      <a class="btn btn-primary">Pedidos</a>
+                      <a href="{% url 'ver_pedidos_mesa' m.id %}" class="btn btn-primary">Pedidos</a>
                     {% endif %}
                     {% if m.estado_reserva == 'Reservada' %}
                       <a href="{% url 'reservasMesa' m.id %}" class="btn btn-primary">Reservas</a>
