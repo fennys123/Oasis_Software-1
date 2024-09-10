@@ -140,6 +140,15 @@ FORMAT_MODULE_PATH = [
     "Oasis.formats"
 ]
 
+# Configuración de correo
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "sayiis2005@gmail.com"
+EMAIL_HOST_PASSWORD = "sktmrfunzftfeped"
+
+
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'Oasis.utils.custom_exception_handler',
 	'DEFAULT_AUTHENTICATION_CLASSES': [

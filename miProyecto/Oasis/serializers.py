@@ -34,7 +34,7 @@ class ReservaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Reserva
         #Agregar el 'usuario' cuando funcione
-        fields = ['id', 'evento', 'mesa', 'fecha_compra', 'total', 'codigo_qr']
+        fields = ['id', 'evento', 'mesa', 'fecha_compra', 'total', 'codigo_qr', 'qr_imagen']
 
 class CategoriaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

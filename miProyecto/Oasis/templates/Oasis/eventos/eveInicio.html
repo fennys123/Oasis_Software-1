@@ -49,9 +49,9 @@
               <td data-label="Aforo">{{ e.aforo }}</td>
               <td data-label="Entradas Disponibles"><a href="{% url 'eveEntradas' e.id %}" style="text-decoration: none;">{{ e.entradas_disponibles }}</a></td>
               {% if e.reservas %}
-                <td data-label="Reservas"><a href="{% url 'eveReserva' e.id%}" style="text-decoration: none;">Ver reservas</a></td>
+                  <td data-label="Reservas"><a href="{% url 'eveReserva' e.id%}" style="text-decoration: none;">Ver reservas</a></td>
               {% else %}
-                <td data-label="Reservas">No existen reservas</td>
+                  <td data-label="Reservas">No existen reservas</td>
               {% endif %}
               <td data-label="Acciones">
                 <a type="button" class="btn btn-info" href="{% url 'detalleEvento' e.id %}"><i class="bi bi-eye-fill"></i></a>

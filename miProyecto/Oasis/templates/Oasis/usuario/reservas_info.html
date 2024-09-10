@@ -76,7 +76,7 @@
 
         <div class="info">
             <p><b>QR</b></p>
-            <img src="{% static 'Oasis/img/qr.png' %}" alt="qr" data-toggle="modal" data-target="#verQr">
+            <img src="{{ reserva.qr_imagen.url }}" alt="qr" data-toggle="modal" data-target="#verQr">
         </div>
     </div>
 
@@ -139,7 +139,7 @@
                 <div class="modal-body">
                     <p> El código QR que aparece aquí también será enviado a tu correo electrónico. Este código es necesario para ingresar al evento.</p>
                     <div class="w-100 d-flex justify-content-center"    >
-                        <img src="{% static 'Oasis/img/qr.png' %}" alt="mapa" width="50%">
+                        <img src="{{ reserva.qr_imagen.url }}" alt="qr" width="50%">
                     </div>
                 </div>
             </div>

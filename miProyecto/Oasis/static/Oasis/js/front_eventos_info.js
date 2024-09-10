@@ -178,6 +178,7 @@ function getCSRFToken() {
     return cookieValue;
 }
 
+/*
 document.getElementById('confirmarReservaBtn').addEventListener('click', function() {
     const selectMesa = document.querySelector('select[name="mesa"]');
     const mesaId = selectMesa.value;
@@ -230,5 +231,10 @@ document.getElementById('confirmarReservaBtn').addEventListener('click', functio
         alert('Error al procesar la solicitud' + error);
     });
 });
+*/  
 
-
+function confirmarReserva(evento_id) {
+    console.log('Entrando...')
+    const url = `http://0.0.0.0:8000/reservar_mesa/${evento_id}/`;
+    location.href = url;
+}

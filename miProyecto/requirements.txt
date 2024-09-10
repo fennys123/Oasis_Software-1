@@ -12,7 +12,9 @@ Markdown==3.5.2
 packaging==24.0
 pillow==10.2.0
 psycopg2-binary==2.9.9
+pypng==0.20220715.0
 pytz==2024.1
+qrcode==7.4.2
 sqlparse==0.4.4
 typing_extensions==4.10.0
 uvicorn==0.30.0

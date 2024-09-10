@@ -14,7 +14,7 @@ from collections import defaultdict
 
 # Para tomar el from desde el settings
 from django.conf import settings
-from django.core.mail import BadHeaderError, EmailMessage
+from django.core.mail import EmailMessage, send_mail
 # Importamos todos los modelos de la base de datos
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
@@ -723,6 +723,7 @@ def eveInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
     q = Evento.objects.all()
+
     contexto = {'data' : q, 'user':user, 'url': "Gestion_Eventos"}
     return render(request, "Oasis/eventos/eveInicio.html", contexto)
 
@@ -821,16 +822,20 @@ def detalleEvento(request, id):
 def eveEntradas(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
+
     evento = Evento.objects.get(pk = id)
     entradas = CompraEntrada.objects.filter(evento = id)
 
-    correos = [Usuario.objects.get(nombre=entrada.usuario).email for entrada in entradas]
-    
-    entradas_con_correo = []
-    for entrada, correo in zip(entradas, correos):
-        entradas_con_correo.append({'entrada': entrada, 'correo': correo})
+    precio_entrada_general = evento.precio_entrada
+    precio_entrada_vip = evento.precio_vip
 
-    contexto = {'evento': evento, 'user':user, 'entradas': entradas_con_correo, 'url': "Evento_Entradas"}
+    for entrada in entradas:
+        entrada.total_entradas = entrada.entrada_general + entrada.entrada_vip
+        entrada.subtotal_general = entrada.entrada_general * precio_entrada_general
+        entrada.subtotal_vip = entrada.entrada_vip * precio_entrada_vip
+        entrada.save()
+
+    contexto = {'evento': evento, 'user':user, 'entradas': entradas, 'url': "Gestion_Eventos"}
 
     return render(request, 'Oasis/eventos/eveEntradas.html', contexto)
 
@@ -854,9 +859,10 @@ def eveReserva(request, id):
     evento = Evento.objects.get(id=id)
     reservas = Reserva.objects.filter(evento=evento)
 
-    contexto = {'user': user, 'reservas': reservas, 'evento': evento}
+    contexto = {'user': user, 'reservas': reservas, 'evento': evento, 'url': "Gestion_Eventos"}
 
     return render(request, 'Oasis/eventos/eveReserva.html', contexto)
+
 
 
 # MENÚ (CATEGORÍAS)
@@ -1194,7 +1200,10 @@ def comprar_entradas(request, id):
     return JsonResponse({'messages': messages})
 
 
+
+
 def reservar_mesa(request, id):
+    print("Entrando")
     logueo = request.session.get("logueo", False)
     messages = []
 
@@ -1207,7 +1216,6 @@ def reservar_mesa(request, id):
 
     if request.method == "POST":
         data = json.loads(request.body)
-
         mesa = Mesa.objects.get(pk=data.get("id_mesa", 0))
         total = int(data.get("total_general", 0))
         if evento.entradas_disponibles >= mesa.capacidad:
@@ -1218,17 +1226,54 @@ def reservar_mesa(request, id):
                 total=total,
             )
             evento.entradas_disponibles -= mesa.capacidad
+
             if evento.reservas == False:
                 evento.reservas = True
+                
             evento.save()
             mesa.estado_reserva = 'Reservada'
             mesa.save()
 
+            # Enviar correo electronico
+            destinatario = user.email
+            mensaje = f"""
+                    <h1 style='color:blue;'>Oasis</h1>
+                    <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
+                    <p>Este es su código QR para acceder:</p>
+                    <img src="{reserva.qr_imagen.url}" alt="qr"/>
+                    """
+            
+            send_mail('Reserva en Oasis', mensaje, settings.EMAIL_HOST_USER, [destinatario])
+            print('mensaje')
             messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})
 
-    return JsonResponse({'messages': messages}) 
+    return JsonResponse({'messages': messages})
+
+
+
+def eliminar_reserva(request, id):
+    try:
+        reserva = Reserva.objects.get(pk=id)
+        reserva.evento.entradas_disponibles += reserva.mesa.capacidad
+        reserva.delete()
+            
+        cantidad_reservas_evento = Reserva.objects.filter(evento=reserva.evento).count()
+
+        if cantidad_reservas_evento == 0:
+            reserva.evento.reservas = False
+        
+        reserva.evento.save()
+
+        reserva.mesa.estado_reserva = "Disponible"
+        reserva.mesa.save()
+
+        messages.success(request,'Reserva eliminada correctamente')
+    except Exception as e:
+        messages.error(request, f"Error al eliminar la reserva: {e}")
+
+    return redirect(f'/Reservas/{reserva.evento.id}')
 
 
 def escanear_mesa (request):

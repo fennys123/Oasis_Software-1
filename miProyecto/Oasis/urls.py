@@ -206,5 +206,6 @@ urlpatterns = [
 
 #RESERVAR MESAS
     path("reservar_mesa/<int:id>/", views.reservar_mesa, name="reservar_mesa"),
+    path("eliminar_reserva/<int:id>/", views.eliminar_reserva, name="eliminar_reserva"),
 
 ]   
