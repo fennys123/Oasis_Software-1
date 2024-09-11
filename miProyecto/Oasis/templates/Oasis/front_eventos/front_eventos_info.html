@@ -127,8 +127,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <!--data-evento-id="{{ evento.id }}" Esto iba en el botón de confirmar compra-->
-                    <a type="button" class="btn btn-success" id="confirmarCompraBtn" href="{% url 'reservar_mesa' evento.id %}">Confirmar compra</a>
+                    <a type="button" class="btn btn-success" id="confirmarCompraBtn" data-evento-id="{{ evento.id }}">Confirmar compra</a>
                 </div>
             </div>
         </div>

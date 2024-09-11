@@ -15,6 +15,8 @@ from collections import defaultdict
 # Para tomar el from desde el settings
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
+import threading
+
 # Importamos todos los modelos de la base de datos
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
@@ -35,9 +37,30 @@ from rest_framework import viewsets
 #Importar el crypt
 from .crypt import *
 
-
 #Importar todos los modelos de la base de datos.
 from .models import *
+
+
+
+#Enviar emails por un hilo separado
+class EmailThread(threading.Thread):
+    def __init__(self, subject, message, recipient_list):
+        self.subject = subject
+        self.message = message
+        self.recipient_list = recipient_list
+        threading.Thread.__init__(self)
+
+    def run(self):
+        # El correo ahora se envía como HTML
+        send_mail(
+            subject=self.subject,
+            message='Este correo requiere un cliente compatible con HTML.',  # Mensaje de texto plano
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=self.recipient_list,
+            html_message=self.message  # Aquí va el mensaje en HTML
+        )
+
+
 
 def index(request):
     logueo = request.session.get("logueo", False)
@@ -225,13 +248,14 @@ def entradas_usuario_info(request, id):
     user = Usuario.objects.get(pk=logueo["id"])
     
     try:
-        entrada = CompraEntrada.objects.get(pk=id, usuario=logueo["id"])
-        evento = Evento.objects.get(pk=entrada.evento.id)
+        compra_entrada = CompraEntrada.objects.get(pk=id, usuario=logueo["id"])
+        qr_entradas = entradasQR.objects.filter(compra=compra_entrada.id)
 
-        total_personas = entrada.entrada_general + entrada.entrada_vip
+        evento = Evento.objects.get(pk=compra_entrada.evento.id)
         
-        contexto = {'entrada': entrada, 'evento': evento, 'total_personas': total_personas, 'user': user, 'url':'entradas_info'}
+        contexto = {'compra': compra_entrada, 'qr_entradas': qr_entradas, 'evento': evento, 'user': user, 'url':'entradas_info'}
         return render(request, "Oasis/usuario/entradas_info.html", contexto)
+    
     except CompraEntrada.DoesNotExist:
         messages.error(request, f'La compra de entrada con el ID {id} no existe o no pertenece al usuario actual.')
         return redirect('entradas_usuario')
@@ -839,18 +863,27 @@ def eveEntradas(request, id):
 
     return render(request, 'Oasis/eventos/eveEntradas.html', contexto)
 
+
 def eliminarEntrada(request, id):
     try:
         entrada = CompraEntrada.objects.get(pk=id)
         entrada.delete()
-        evento = Evento.objects.filter(pk=entrada.evento.id).first()
+        qr_entradas = entradasQR.objects.filter(compra=entrada)
+        qr_entradas.delete()
+        evento = Evento.objects.get(pk=entrada.evento.id)
         evento.entradas_disponibles = F('entradas_disponibles') + entrada.entrada_general + entrada.entrada_vip
+        
+        cantidad_entradas_evento = CompraEntrada.objects.filter(evento=evento).count()
+
+        if cantidad_entradas_evento == 0:
+            evento.entradas = False
+
         evento.save()
         messages.success(request, "Entrada Eliminada Correctamente!")
     except Exception as e:
         messages.error(request, f'Error: {e}')
     
-    return redirect('Eventos')
+    return redirect(f'/Evento_Entradas/{evento.id}')
 
 
 def eveReserva(request, id):
@@ -1191,7 +1224,25 @@ def comprar_entradas(request, id):
             )
 
             evento.entradas_disponibles -= cantidad_general + cantidad_vip
+            
+            if not evento.entradas:
+                evento.entradas = True
+
             evento.save()
+
+            if cantidad_general > 0:
+                for _ in range(cantidad_general):
+                    entradasQR.objects.create(
+                        compra= CompraEntrada.objects.get(pk=compra.id),
+                        tipo_entrada="General",
+                    )
+            
+            if cantidad_vip > 0:
+                for _ in range(cantidad_vip):
+                    entradasQR.objects.create(
+                        compra= CompraEntrada.objects.get(pk=compra.id),
+                        tipo_entrada="VIP",
+                    ) 
 
             messages.append({'message_type': 'success', 'message': 'Entradas compradas correctamente'})
         else:
@@ -1203,7 +1254,6 @@ def comprar_entradas(request, id):
 
 
 def reservar_mesa(request, id):
-    print("Entrando")
     logueo = request.session.get("logueo", False)
     messages = []
 
@@ -1218,6 +1268,7 @@ def reservar_mesa(request, id):
         data = json.loads(request.body)
         mesa = Mesa.objects.get(pk=data.get("id_mesa", 0))
         total = int(data.get("total_general", 0))
+
         if evento.entradas_disponibles >= mesa.capacidad:
             reserva = Reserva.objects.create(
                 usuario=user, 
@@ -1227,24 +1278,23 @@ def reservar_mesa(request, id):
             )
             evento.entradas_disponibles -= mesa.capacidad
 
-            if evento.reservas == False:
+            if not evento.reservas:
                 evento.reservas = True
-                
+
             evento.save()
             mesa.estado_reserva = 'Reservada'
             mesa.save()
 
-            # Enviar correo electronico
+            # Enviar correo en un hilo separado
             destinatario = user.email
             mensaje = f"""
-                    <h1 style='color:blue;'>Oasis</h1>
-                    <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
-                    <p>Este es su código QR para acceder:</p>
-                    <img src="{reserva.qr_imagen.url}" alt="qr"/>
-                    """
-            
-            send_mail('Reserva en Oasis', mensaje, settings.EMAIL_HOST_USER, [destinatario])
-            print('mensaje')
+                <h1 style='color:blue;'>Oasis</h1>
+                <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
+                <p>Este es su código QR para acceder:</p>
+                <img src="{reserva.qr_imagen.url}" alt="Código QR"/>
+            """
+            EmailThread('Reserva en Oasis', mensaje, [destinatario]).start()
+
             messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})

@@ -80,6 +80,10 @@ header {
     justify-content: space-between;
   }
 
+  .text-12{
+    font-size: 12px;
+  }
+
   #frase {
     position: absolute;
     top: 80%;

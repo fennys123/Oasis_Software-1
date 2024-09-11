@@ -67,6 +67,7 @@ class Evento(models.Model):
     precio_entrada = models.IntegerField(default=50000)
     precio_vip = models.IntegerField(default=75000)
     reservas = models.BooleanField(default=False)
+    entradas = models.BooleanField(default=False)
     foto = models.ImageField(upload_to="Img_eventos/", default="Img_eventos/default.png")
 
     def __str__(self):
@@ -90,7 +91,41 @@ class CompraEntrada(models.Model):
         return f'{self.id}'
 
 
-codigo_qr = str(uuid.uuid4())
+class entradasQR(models.Model):
+    compra = models.ForeignKey(CompraEntrada, on_delete=models.CASCADE, default=None)
+    codigo_qr = models.CharField(max_length=100, unique=True)
+    qr_imagen = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+    estado_qr = models.BooleanField(default=True)
+    tipo_entrada = models.CharField(max_length=10, default="General")
+
+    def __str__(self):
+        return f'{self.id}'
+    
+    def save(self, *args, **kwargs):
+        if not self.codigo_qr:
+            self.codigo_qr = str(uuid.uuid4())
+
+        qr_data = {
+            'codigo_entrada': self.codigo_qr,
+            'estado_qr': self.estado_qr,
+            'tipo_entrada': self.tipo_entrada
+        }
+        
+        qr_data_json = json.dumps(qr_data)
+        
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+        qr.add_data(qr_data_json)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill='black', back_color='white')
+
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        file_name = f'qr_{self.codigo_qr}.png'
+        self.qr_imagen.save(file_name, File(buffer), save=False)
+
+        super().save(*args, **kwargs)
+
 
 class Mesa(models.Model):
     ACTIVA = 'Activa'

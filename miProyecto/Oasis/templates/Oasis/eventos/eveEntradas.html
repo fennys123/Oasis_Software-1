@@ -64,13 +64,12 @@
                       </div>
                       <div class="d-flex flex-column justify-content-center align-items-center mt-3">
                           <p class="m-0"><strong>{{ evento.nombre }}</strong></p>
-                          <small>{{ evento.fecha }}</small>
-                          <br>
+                          <p class="text-12">{{ evento.fecha }}</p>
                           <p class="m-0"><strong>Info de la entrada</strong></p>
-                          <small>Usuario: {{ e.usuario.nombre }}</small>
-                          <small>Correo: {{ e.usuario.email }}</small>
-                          <small>CC: {{ e.usuario.cedula }}</small>
-                          <small>Fecha de compra: {{ e.fecha_compra }}</small>
+                          <p class="text-12 m-0">Usuario: {{ e.usuario.nombre }}</p>
+                          <p class="text-12 m-0">Correo: {{ e.usuario.email }}</p>
+                          <p class="text-12 m-0">CC: {{ e.usuario.cedula }}</p>
+                          <p class="text-12 m-0">Fecha de compra: {{ e.fecha_compra }}</p>
                           <br>
 
                           <div id="contenedorTabla">
@@ -78,26 +77,26 @@
                                   <tbody>
                                       {% if e.entrada_general > 0 and e.entrada_vip <= 0 %}
                                           <tr>
-                                              <td data-label="General">General</td>
-                                              <td data-label="Cantidad">x{{ e.entrada_general }}</td>
-                                              <td data-label="Subtotal" style="text-align: end">${{ e.subtotal_general|intcomma }}</td>
+                                              <td data-label="Entrada" class="text-12">General</td>
+                                              <td data-label="Cantidad" class="text-12">x{{ e.entrada_general }}</td>
+                                              <td data-label="Subtotal" class="text-12" style="text-align: end">${{ e.subtotal_general|intcomma }}</td>
                                           </tr>
                                       {% elif e.entrada_vip > 0 and e.entrada_general <= 0 %}
                                           <tr>
-                                              <td data-label="Vip">Vip</td>
-                                              <td data-label="Cantidad">x{{ e.entrada_vip }}</td>
-                                              <td data-label="Subtotal" style="text-align: end">${{ e.subtotal_vip|intcomma }}</td>
+                                              <td data-label="Entrada" class="text-12">Vip</td>
+                                              <td data-label="Cantidad" class="text-12">x{{ e.entrada_vip }}</td>
+                                              <td data-label="Subtotal" class="text-12" style="text-align: end">${{ e.subtotal_vip|intcomma }}</td>
                                           </tr>
                                       {% elif e.entrada_vip > 0 and e.entrada_general > 0 %}
                                           <tr>
-                                              <td data-label="General">General</td>
-                                              <td data-label="Cantidad">x{{ e.entrada_general }}</td>
-                                              <td data-label="Subtotal" style="text-align: end">${{ e.subtotal_general|intcomma }}</td>
+                                              <td data-label="Entrada" class="text-12">General</td>
+                                              <td data-label="Cantidad" class="text-12">x{{ e.entrada_general }}</td>
+                                              <td data-label="Subtotal" class="text-12" style="text-align: end">${{ e.subtotal_general|intcomma }}</td>
                                           </tr>
                                           <tr>
-                                              <td data-label="Vip">Vip</td>
-                                              <td data-label="Cantidad">x{{ e.entrada_vip }}</td>
-                                              <td data-label="Subtotal" style="text-align: end">${{ e.subtotal_vip|intcomma }}</td>
+                                              <td data-label="Entrada" class="text-12">Vip</td>
+                                              <td data-label="Cantidad" class="text-12">x{{ e.entrada_vip }}</td>
+                                              <td data-label="Subtotal" class="text-12" style="text-align: end">${{ e.subtotal_vip|intcomma }}</td>
                                           </tr>
                                       {% endif %}
                                   </tbody>
@@ -115,44 +114,10 @@
                   <div class="modal-footer">
                       <button type="button" class="btn btn-success w-100" data-dismiss="modal">Escaneada</button>
                   </div>
+                </div>
               </div>
           </div>
       </div>
     {% endfor %}
 
-
-    <!--
-      <div id="contenedorTabla" class="contenedorTabla">            
-          <table id="tabla" class="table table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Usuario</th>
-                <th>Email</th>
-                <th>Entradas Generales</th>
-                <th>Entradas Vip</th>
-                <th>Total</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for entrada_con_correo in entradas_con_correo %}
-                <tr>
-                  <td>{{ entrada_con_correo.entrada.id }}</td>
-                  <td>{{ entrada_con_correo.entrada.usuario }}</td>
-                  <td>{{ entrada_con_correo.correo }}</td>
-                  <td>{{ entrada_con_correo.entrada.entrada_general }}</td>
-                  <td>{{ entrada_con_correo.entrada.entrada_vip }}</td>
-                  <td>{{ entrada_con_correo.entrada.total|intcomma }}</td>
-                  <td>{{ entrada_con_correo.entrada.fecha_compra }}</td>
-                  <td>
-                    <a type="button" class="btn btn-danger" href="javascript:eliminar('{% url 'eliminarEntrada' entrada_con_correo.entrada.id %}')"><i class="bi bi-x-lg"></i></a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-      </div>
-    -->
 {% endblock %}

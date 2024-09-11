@@ -52,50 +52,31 @@
                     <p>{{ evento.fecha }}</p>
                 </div>
             </div>
-            {% if entrada.entrada_general > 0 and entrada.entrada_vip > 0 %}
-                <div class="body">
-                    <p><b>Entrada general</b></p>
-                    <p>{{ entrada.entrada_general }}</p>
-                </div>
-                <div class="body">
-                    <p><b>Entrada vip</b></p>
-                    <p>{{ entrada.entrada_vip }}</p>
-                </div>
-            {% elif entrada.entrada_general > 0 and entrada.entrada_vip == 0 %}
-                <div class="body">
-                    <p><b>Entrada general</b></p>
-                    <p>{{ entrada.entrada_general }}</p>
-                </div>
-            {% elif entrada.entrada_general == 0 and entrada.entrada_vip > 0 %}
-                <div class="body">
-                    <p><b>Entrada vip</b></p>
-                    <p>{{ entrada.entrada_vip }}</p>
-                </div>
-            {% endif %}
             <div class="body">
                 <p><b>Fecha de la compra</b></p>
-                <p>{{ entrada.fecha_compra }}</p>
+                <p>{{ compra.fecha_compra }}</p>
             </div>
             <div class="body">
                 <p><b>Total pagado</b></p>
-                <p>${{ entrada.total|intcomma }}</p>
-            </div>
-            <div class="body">
-                {% if total_personas == 1 %}
-                    <p><b>Esta entrada es válida para {{ total_personas }} persona</b></p>
-                {% else %}
-                    <p><b>Esta entrada es válida para {{ total_personas }} personas</b></p>
-                {% endif %}
+                <p>${{ compra.total|intcomma }}</p>
             </div>
         </div>
     </div>
 
-    <div class="seccion_qr">
-        <div class="info">
-            <p><b>QR</b></p>
-            <img src="{% static 'Oasis/img/qr.png' %}" alt="qr" data-toggle="modal" data-target="#verQr">
-        </div>
+    <p><strong>Total entradas: {{ qr_entradas|length }}</strong></p>
+    <div id="contenedorTabla">
+        <table class="table"> 
+            <tbody>
+                {% for e in qr_entradas %}
+                    <tr>
+                        <td data-label="Entrada">{{ e.tipo_entrada }}</td>
+                        <td data-label="Código QR"><button class="btn btn-primary" data-toggle="modal" data-target="#verQr_{{ e.id }}"><i class="bi bi-qr-code"></i></button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+
 
 
     <div class="seccion_info_importante">
@@ -113,22 +94,24 @@
         </div>
     </div>
 
-    <div class="modal fade" id="verQr" tabindex="-1" role="dialog" aria-labelledby="verQrLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <p class="tituloFormulario">Ver código QR</p>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div> 
-                <div class="modal-body">
-                    <p> El código QR que aparece aquí también será enviado a tu correo electrónico. Este código es necesario para ingresar al evento.</p>
-                    <div class="w-100 d-flex justify-content-center"    >
-                        <img src="{% static 'Oasis/img/qr.png' %}" alt="mapa" width="50%">
+    {% for e in qr_entradas %}
+        <div class="modal fade" id="verQr_{{ e.id }}" tabindex="-1" role="dialog" aria-labelledby="verQrLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <p class="tituloFormulario">Ver código QR</p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div> 
+                    <div class="modal-body">
+                        <p> El código QR que aparece aquí también será enviado a tu correo electrónico. Este código es necesario para ingresar al evento.</p>
+                        <div class="w-100 d-flex justify-content-center"    >
+                            <img src="{{ e.qr_imagen.url }}" alt="mapa" width="50%">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    {% endfor %}
 {% endblock %}

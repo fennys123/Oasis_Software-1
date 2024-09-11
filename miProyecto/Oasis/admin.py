@@ -21,10 +21,10 @@ class BloqueoAdmin(admin.ModelAdmin):
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ['id','nombre', 'nombre_plural', 'fecha', 'hora_incio', 'descripcion', 'aforo', 'entradas_disponibles', 'precio_entrada', 'precio_vip' , 'reservas','foto']
+    list_display = ['id','nombre', 'nombre_plural', 'fecha', 'hora_incio', 'descripcion', 'aforo', 'entradas_disponibles', 'precio_entrada', 'precio_vip' , 'reservas', 'entradas','foto']
     search_fields = ['id','nombre','fecha','hora_incio']
     list_filter = ['fecha']
-    list_editable = ['nombre','fecha','hora_incio', 'reservas']
+    list_editable = ['nombre','fecha','hora_incio', 'reservas', 'entradas', 'entradas_disponibles']
 
     def ver_foto(self, obj):
         return mark_safe(f"<a href='{obj.foto.url}'><img src='{obj.foto.url}' width='10%'></a>")
@@ -37,6 +37,11 @@ class CompraEntradaAdmin(admin.ModelAdmin):
     list_display = ['id','usuario', 'evento', 'entrada_general', 'entrada_vip', 'total', 'fecha_compra']
     search_fields =['id','usuario','evento','fecha_compra']
     list_editable = ['entrada_general', 'entrada_vip', 'total']
+
+@admin.register(entradasQR)
+class entradasQRAdmin(admin.ModelAdmin):
+    list_display = ['id', 'compra', 'codigo_qr', 'qr_imagen', 'estado_qr', 'tipo_entrada']
+
 
 @admin.register(Mesa)
 class MesaAdmin(admin.ModelAdmin):
