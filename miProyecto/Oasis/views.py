@@ -1,11 +1,14 @@
+from tarfile import HeaderError
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.urls import reverse
+from urllib.parse import urlencode
+from random import randint
 
 from django.db.models import F
 from collections import defaultdict
@@ -150,6 +153,79 @@ def crear_usuario_registro(request):
                 messages.error(request, f"Error: {e}")
 
     return redirect("registro")
+
+#RECUPERAR CONTRASEÑA.
+def recuperar_clave(request):
+	if request.method == "POST":
+		correo = request.POST.get("correo")
+		try:
+			q = Usuario.objects.get(email=correo)
+			from random import randint
+			import base64
+			token = base64.b64encode(str(randint(100000, 999999)).encode("ascii")).decode("ascii")
+			print(token)
+			q.token_recuperar = token
+			q.save()
+			# enviar correo de recuperación
+			destinatario = correo
+			mensaje = f"""
+					<h1 style='color:blue;'>OASIS</h1>
+					<p>Usted ha solicitado recuperar su contraseña, haga clic en el link y digite el token.</p>
+					<p>Token: <strong>{token}</strong></p>
+					<a href='http://127.0.0.1:8000/verificar_recuperar/?correo={correo}'>Recuperar...</a>
+					"""
+			try:
+				msg = EmailMessage("Oasis", mensaje, settings.EMAIL_HOST_USER, [destinatario])
+				msg.content_subtype = "html"  # Habilitar contenido html
+				msg.send()
+				messages.success(request, "Correo enviado!!")
+			except HeaderError:
+				messages.error(request, "Encabezado no válido")
+			except Exception as e:
+				messages.error(request, f"Error: {e}")
+			# fin -
+		except Usuario.DoesNotExist:
+			messages.error(request, "No existe el usuario....")
+		return redirect("recuperar_clave")
+	else:
+		return render(request, "Oasis/login/recuperar_clave.html")
+
+
+def verificar_recuperar(request):
+	if request.method == "POST":
+		if request.POST.get("check"):
+			# caso en el que el token es correcto
+			correo = request.POST.get("correo")
+			q = Usuario.objects.get(email=correo)
+
+			c1 = request.POST.get("nueva1")
+			c2 = request.POST.get("nueva2")
+
+			if c1 == c2:
+				# cambiar clave en DB
+				q.password = hash_password(c1)
+				q.token_recuperar = ""
+				q.save()
+				messages.success(request, "Contraseña guardada correctamente!!")
+				return redirect("index")
+			else:
+				messages.info(request, "Las contraseñas nuevas no coinciden...")
+				return redirect("verificar_recuperar")+"/?correo="+correo
+		else:
+			# caso en el que se hace clic en el correo-e para digitar token
+			correo = request.POST.get("correo")
+			token = request.POST.get("token")
+			q = Usuario.objects.get(email=correo)
+			if (q.token_recuperar == token) and q.token_recuperar != "":
+				contexto = {"check": "ok", "correo":correo}
+				return render(request, "Oasis/login/verificar_recuperar.html", contexto)
+			else:
+				messages.error(request, "Token incorrecto")
+				return redirect("verificar_recuperar")  #falta agregar correo como parametro url
+	else:
+		correo = request.GET.get("correo")
+		contexto = {"correo":correo}
+		return render(request, "Oasis/login/verificar_recuperar.html", contexto)
 
 
 #TÉRMINOS Y CONDICIONES

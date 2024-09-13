@@ -65,6 +65,9 @@ urlpatterns = [
     #CAMBIAR CONTRASEÑA
     path('cambiar_clave/', views.cambiar_clave, name="cambiar_clave"),
 
+    #RECUPERAR CONTRASEÑA
+    path('recuperar_clave/', views.recuperar_clave, name="recuperar_clave"),
+    path('verificar_recuperar/', views.verificar_recuperar, name="verificar_recuperar"),
 
     #USUARIOS
     path('Gestion_Usuarios/', views.guInicio, name='guInicio'),
