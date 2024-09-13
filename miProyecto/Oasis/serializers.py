@@ -25,6 +25,11 @@ class CompraEntradaSerializer(serializers.HyperlinkedModelSerializer):
         model = CompraEntrada
         fields = ['id', 'usuario', 'evento', 'entrada_general', 'entrada_vip', 'total', 'fecha_compra']
 
+class EntradasQRSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = EntradasQR
+        fields = ['id', 'compra', 'codigo_qr', 'qr_imagen', 'estado_qr', 'tipo_entrada']
+
 class MesaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Mesa

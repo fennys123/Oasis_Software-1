@@ -29,7 +29,8 @@ urlpatterns = [
 	path('api/1.0/api-auth/', include('rest_framework.urls')),
 	path('api/1.0/token_qr/<str:mesa>/<str:email>/', views.token_qr_movil.as_view()),
     path('api/1.0/comprar_entradas/', views.comprar_entradas_movil.as_view()),
-
+    path('api/1.0/entradas_usuario/<int:id>/', views.entradas_usuario_movil.as_view()),
+    path('api/1.0/entradas_detalles_usuario/<int:user_id>/<int:entrada_id>/', views.entradas_detalles_usuario_movil.as_view()),
 
 
 

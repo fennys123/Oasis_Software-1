@@ -1694,6 +1694,78 @@ class comprar_entradas_movil(APIView):
             return JsonResponse({'error':f'{e}'}, status=400)
 
 
+class entradas_usuario_movil(APIView):
+    def get(self, request, id):
+        try:
+            usuario = Usuario.objects.get(pk=id)
+            entradas = CompraEntrada.objects.filter(usuario=usuario)
+
+            if not entradas:
+                return JsonResponse({'message':'No hay entradas para este usuario'}, status=404)
+
+
+            entradas_info = []
+            for entrada in entradas:
+                evento = Evento.objects.get(id=entrada.evento.id)
+                entradas_info.append({
+                    'entrada': {
+                        'id': entrada.id,
+                        'entrada_general': entrada.entrada_general,
+                        'entrada_vip': entrada.entrada_vip,
+                        'total': entrada.total,
+                        'fecha_compra': entrada.fecha_compra
+                    },
+                    'evento': {
+                        'id': evento.id,
+                        'nombre': evento.nombre,
+                        'fecha': evento.fecha,
+                        'hora_incio': evento.hora_incio,
+                        'descripcion': evento.descripcion,
+                        'aforo': evento.aforo,
+                        'precio_entrada': evento.precio_entrada,
+                        'precio_vip': evento.precio_vip,
+                        'foto': evento.foto.url
+                    }
+                })
+
+            return JsonResponse({'entradas': entradas_info})
+
+        except Usuario.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        except Evento.DoesNotExist:
+            return JsonResponse({'error': 'Evento no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'}, status=500)
+
+
+
+class entradas_detalles_usuario_movil(APIView):
+    def get(self, request, user_id, entrada_id):
+
+        try:
+            usuario = Usuario.objects.get(pk=user_id)
+            compra_entrada = CompraEntrada.objects.get(pk=entrada_id, usuario=usuario)
+
+            # Serializar los datos
+            qr_entradas = EntradasQR.objects.filter(compra=compra_entrada.id)
+            evento = Evento.objects.get(pk=compra_entrada.evento.id)
+
+            qr_entradas_serializer = EntradasQRSerializer(qr_entradas, many=True, context={'request': request})
+            evento_serializer = EventoSerializer(evento, context={'request': request})
+            compra_entrada_serializer = CompraEntradaSerializer(compra_entrada, context={'request': request})
+
+            return Response({
+                'qr_entradas': qr_entradas_serializer.data,
+                'evento': evento_serializer.data,
+                'compra_entrada': compra_entrada_serializer.data
+            })
+
+
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'})
+
+
+
 def crear_pedido_usuario(request, id):
     try:
         logueo = request.session.get("logueo", False)
@@ -2127,6 +2199,10 @@ class EventoViewSet(viewsets.ModelViewSet):
 class CompraEntradaViewSet(viewsets.ModelViewSet):
     queryset = CompraEntrada.objects.all()
     serializer_class = CompraEntradaSerializer
+
+class EntradasQRViewSet(viewsets.ModelViewSet):
+    queryset = EntradasQR.objects.all()
+    serializer_class = EntradasQRSerializer
 
 class MesaViewSet(viewsets.ModelViewSet):
     queryset = Mesa.objects.all()
