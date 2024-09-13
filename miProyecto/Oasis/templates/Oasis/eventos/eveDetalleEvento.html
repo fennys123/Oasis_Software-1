@@ -21,7 +21,7 @@
     <div class="info-evento">
         <div class="cabecera">
             <div>
-                <p class="titulo-producto">{{ evento.nombre }}</p>
+                <p class="titulo-evento">{{ evento.nombre }}</p>
                 <p>{{ evento.fecha }} a las {{ evento.hora_incio }} pm</p>
             </div>
         </div>
@@ -35,7 +35,11 @@
         </div>
         <div class="body">
           <p><b>Entradas disponibles</b></p>
-          <a href="{% url 'eveEntradas' evento.id %}"><p>{{ evento.entradas_disponibles }}</p></a>
+          {% if evento.entradas %}
+            <td data-label="Entradas Disponibles"><a href="{% url 'eveEntradas' evento.id %}" style="text-decoration: none;">{{ evento.entradas_disponibles }}</a></td>
+          {% else %}
+            <td data-label="Entradas Disponibles">No existen entradas</td>
+          {% endif %}
         </div>
         <div class="body">
           <p><b>Precio entrada general</b></p>

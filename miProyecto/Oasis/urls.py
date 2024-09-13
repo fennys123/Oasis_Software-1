@@ -27,8 +27,8 @@ urlpatterns = [
     path('api/1.0/', include(router.urls)),
     path('api/1.0/token-auth/', views.CustomAuthToken.as_view()),
 	path('api/1.0/api-auth/', include('rest_framework.urls')),
-	path('api/1.0/token_qr/<str:mesa>/<str:email>/', views.token_qr.as_view()),
-    path('api/1.0/url_prueba/', views.url_prueba.as_view()),
+	path('api/1.0/token_qr/<str:mesa>/<str:email>/', views.token_qr_movil.as_view()),
+    path('api/1.0/comprar_entradas/', views.comprar_entradas_movil.as_view()),
 
 
 

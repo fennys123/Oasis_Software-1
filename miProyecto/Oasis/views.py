@@ -1244,6 +1244,36 @@ def comprar_entradas(request, id):
                         tipo_entrada="VIP",
                     ) 
 
+            qr_entradas = entradasQR.objects.filter(compra=compra.id)
+
+            # Enviar correo en un hilo separado
+            destinatario = user.email
+            mensaje = f"""
+                <h1 style='color:blue;'>Oasis</h1>
+                <p>Usted ha comprado <b>{qr_entradas.count()}</b> {'entradas' if qr_entradas.count() > 1 else 'entrada'} para el evento <b>{compra.evento.nombre}</b> en la fecha <b>{compra.evento.fecha}</b></p>
+                {'<p>Estos son los códigos QR de las entradas:' if qr_entradas.count() > 1 else '<p>Este es el código QR de la entrada:'}
+
+                <table style='border-collapse: collapse; width: 100%;'>
+                    <thead>
+                        <tr>
+                            <th style='border: 1px solid black; padding: 8px;'>Tipo de Entrada</th>
+                            <th style='border: 1px solid black; padding: 8px;'>Código QR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {''.join(f'''
+                        <tr>
+                            <td style='border: 1px solid black; padding: 8px;'>{e.tipo_entrada}</td>
+                            <td style='border: 1px solid black; padding: 8px;'>
+                                <img src="{e.qr_imagen.url}" alt="Código QR" width="100">
+                            </td>
+                        </tr>''' for e in qr_entradas)}
+                    </tbody>
+                </table>
+            """
+            
+            EmailThread('Compra de entradas en Oasis', mensaje, [destinatario]).start()
+
             messages.append({'message_type': 'success', 'message': 'Entradas compradas correctamente'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})
@@ -1567,7 +1597,7 @@ def crear_pedido_admin(request, id):
     return redirect('peGestionMesas')
 
 
-class token_qr(APIView):
+class token_qr_movil(APIView):
     def get(self, request, mesa, email):
         try:
             mesa = Mesa.objects.get(codigo_qr = mesa)
@@ -1584,18 +1614,84 @@ class token_qr(APIView):
             return JsonResponse({'Error':f'{e}'}, status=400)
 
 
-
-class url_prueba(APIView):
+class comprar_entradas_movil(APIView):
     def post(self, request):
-        print(request.data)
         try:
-            email = request.data['email']
-            if email:
-                return JsonResponse({
-                    'message': f'Bienvenido {email}'
-                })
+
+            id_usuario = request.data.get('id_usuario')
+            id_evento = request.data.get('id_evento')
+            cantidad_general = request.data.get('cantidad_general')
+            cantidad_vip = request.data.get('cantidad_vip')
+            total = request.data.get('total')
+
+            usuario = Usuario.objects.get(pk=id_usuario)
+            evento = Evento.objects.get(pk=id_evento)
+
+
+            if evento.entradas_disponibles >= cantidad_general + cantidad_vip:
+                compra = CompraEntrada.objects.create(
+                    usuario=usuario, 
+                    evento=evento,
+                    entrada_general=cantidad_general,
+                    entrada_vip=cantidad_vip,
+                    total=total
+                )
+
+                evento.entradas_disponibles -= cantidad_general + cantidad_vip
+                
+                if not evento.entradas:
+                    evento.entradas = True
+
+                evento.save()
+
+                if cantidad_general > 0:
+                    for _ in range(cantidad_general):
+                        entradasQR.objects.create(
+                            compra= CompraEntrada.objects.get(pk=compra.id),
+                            tipo_entrada="General",
+                        )
+                
+                if cantidad_vip > 0:
+                    for _ in range(cantidad_vip):
+                        entradasQR.objects.create(
+                            compra= CompraEntrada.objects.get(pk=compra.id),
+                            tipo_entrada="VIP",
+                        ) 
+
+                qr_entradas = entradasQR.objects.filter(compra=compra.id)
+
+                destinatario = usuario.email
+                mensaje = f"""
+                    <h1 style='color:blue;'>Oasis</h1>
+                    <p>Usted ha comprado <b>{qr_entradas.count()}</b> {'entradas' if qr_entradas.count() > 1 else 'entrada'} para el evento <b>{compra.evento.nombre}</b> en la fecha <b>{compra.evento.fecha}</b></p>
+                    {'<p>Estos son los códigos QR de las entradas:' if qr_entradas.count() > 1 else '<p>Este es el código QR de la entrada:'}
+
+                    <table style='border-collapse: collapse; width: 100%;'>
+                        <thead>
+                            <tr>
+                                <th style='border: 1px solid black; padding: 8px;'>Tipo de Entrada</th>
+                                <th style='border: 1px solid black; padding: 8px;'>Código QR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {''.join(f'''
+                            <tr>
+                                <td style='border: 1px solid black; padding: 8px;'>{e.tipo_entrada}</td>
+                                <td style='border: 1px solid black; padding: 8px;'>
+                                    <img src="{e.qr_imagen.url}" alt="Código QR" width="100">
+                                </td>
+                            </tr>''' for e in qr_entradas)}
+                        </tbody>
+                    </table>
+                """
+                
+                EmailThread('Compra de entradas en Oasis', mensaje, [destinatario]).start()
+
+                return JsonResponse({'message':'Entradas compradas con éxito'})
+            else:
+                return JsonResponse({'message':'No hay suficientes entradas disponibles'})
         except Exception as e:
-            return JsonResponse({'Error':f'{e}'}, status=400)
+            return JsonResponse({'error':f'{e}'}, status=400)
 
 
 def crear_pedido_usuario(request, id):
