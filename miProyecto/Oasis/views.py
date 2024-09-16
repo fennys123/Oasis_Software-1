@@ -1598,17 +1598,13 @@ def crear_pedido_admin(request, id):
 
 
 class token_qr_movil(APIView):
-    def get(self, request, mesa, email):
+    def get(self, request, mesa):
         try:
             mesa = Mesa.objects.get(codigo_qr = mesa)
-            user = Usuario.objects.get(email= email)
             if mesa:
-                mesa.estado = mesa.ACTIVA
-                mesa.usuario = user
-                mesa.save()
                 return JsonResponse({'mesa':{
                     'nombre': mesa.nombre,
-                    'qr':mesa.codigo_qr
+                    'codigo_qr':mesa.codigo_qr
                 }})
         except Exception as e:
             return JsonResponse({'Error':f'{e}'}, status=400)
@@ -1691,7 +1687,7 @@ class comprar_entradas_movil(APIView):
             else:
                 return JsonResponse({'message':'No hay suficientes entradas disponibles'})
         except Exception as e:
-            return JsonResponse({'error':f'{e}'}, status=400)
+            return JsonResponse({'error':f'{e}'}, status=500)
 
 
 class entradas_usuario_movil(APIView):
@@ -1761,6 +1757,106 @@ class entradas_detalles_usuario_movil(APIView):
             })
 
 
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'})
+
+class reservar_mesa_movil(APIView):
+    def post(self, request):
+        try:
+            id_usuario = request.data.get('id_usuario')
+            id_evento = request.data.get('id_evento')
+            id_mesa = request.data.get('id_mesa')
+            total = request.data.get('total')
+
+            usuario = Usuario.objects.get(pk=id_usuario)
+            evento = Evento.objects.get(pk=id_evento)
+            mesa = Mesa.objects.get(pk=id_mesa)
+
+
+            if evento.entradas_disponibles >= mesa.capacidad:
+                reserva = Reserva.objects.create(
+                    usuario=usuario, 
+                    evento=evento,  
+                    mesa=mesa,
+                    total=total,
+                )
+                evento.entradas_disponibles -= mesa.capacidad
+
+                if not evento.reservas:
+                    evento.reservas = True
+
+                evento.save()
+                mesa.estado_reserva = 'Reservada'
+                mesa.save()
+
+                # Enviar correo en un hilo separado
+                destinatario = usuario.email
+                mensaje = f"""
+                    <h1 style='color:blue;'>Oasis</h1>
+                    <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
+                    <p>Este es su código QR para acceder:</p>
+                    <img src="{reserva.qr_imagen.url}" alt="Código QR"/>
+                """
+                EmailThread('Reserva en Oasis', mensaje, [destinatario]).start()
+
+                return JsonResponse({'message':'Reserva hecha con éxito'})
+            else:
+                return JsonResponse({'message':'No hay suficientes entradas disponibles'})
+
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'}, status=500)
+
+class reservas_usuario_movil(APIView):
+    def get(self, request, id):
+        try:
+            usuario = Usuario.objects.get(pk = id)
+            reservas = Reserva.objects.filter(usuario = usuario)
+
+            if not reservas:
+                return JsonResponse({'message':'No hay reservas para este usuario'}, status=404)
+
+            reservas_info = []
+            for reserva in reservas:
+                evento = Evento.objects.get(id=reserva.evento.id)
+                reservas_info.append({
+                    'reserva': {
+                        'id': reserva.id,
+                        'mesa': reserva.mesa.nombre,
+                        'total': reserva.total,
+                        'fecha_compra': reserva.fecha_compra
+                    },
+                    'evento': {
+                        'id': evento.id,
+                        'nombre': evento.nombre,
+                        'fecha': evento.fecha,
+                        'foto': evento.foto.url
+                    }
+                })
+            
+            return JsonResponse({'reservas': reservas_info})
+        
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'}, status=500)
+
+class reservas_detalles_usuario_movil(APIView):
+    def get(self, request, user_id, reserva_id):
+
+        try:
+            usuario = Usuario.objects.get(pk=user_id)
+            reserva = Reserva.objects.get(pk=reserva_id, usuario=usuario)
+            evento = Evento.objects.get(pk=reserva.evento.id)
+
+            evento_serializer = EventoSerializer(evento, context={'request': request})
+            reserva_serializer = ReservaSerializer(reserva, context={'request': request})
+
+            return Response({
+                'evento': evento_serializer.data,
+                'reserva': reserva_serializer.data,
+                'mesa': reserva.mesa.nombre,
+                'capacidad_mesa': reserva.mesa.capacidad
+
+            })
+        
         except Exception as e:
             return JsonResponse({'error': f'Error: {str(e)}'})
 
