@@ -1862,6 +1862,103 @@ class reservas_detalles_usuario_movil(APIView):
 
 
 
+class realizar_pedido_movil(APIView):
+    def post(self, request):
+        try:
+            id_usuario = request.data.get('id_usuario')
+            codigo_mesa = request.data.get('codigo_mesa')
+            comentario = request.data.get('comentario')
+            total = request.data.get('total')
+            productos_seleccionados = request.data.get('productos_seleccionados')
+            print(productos_seleccionados)
+
+            usuario = Usuario.objects.get(pk=id_usuario)
+            mesa = Mesa.objects.get(codigo_qr=codigo_mesa)
+            
+            
+            pedido = Pedido.objects.create(
+                mesa=mesa, 
+                total=total, 
+                usuario= usuario,
+                comentario=comentario
+            )
+            
+            for p in productos_seleccionados:
+                try:
+                    producto = Producto.objects.get(pk=p['id'])
+                    detalle = DetallePedido.objects.create(
+                        pedido=pedido,
+                        producto=producto,
+                        cantidad=p['cantidad'],
+                        precio=p['precio']
+                    )
+                    producto.inventario -= p['cantidad']
+                    producto.save()
+                    print(f'Detalle del pedido creado: {detalle}')
+                except Exception as e:
+                    print(f'Error al crear detalle del pedido: {e}')
+
+            mesa.estado = mesa.ACTIVA
+            mesa.usuario = usuario
+            mesa.save()
+            
+            return JsonResponse({'message': 'Pedido creado con éxito'})
+
+        except Exception as e:
+            return JsonResponse({'error': f'{e}'})
+
+
+
+class ver_pedido_usuario_movil(APIView):
+    def get(self, request, user_id):
+        try:
+            usuario = Usuario.objects.get(pk=user_id)
+            pedidos = Pedido.objects.filter(usuario=usuario).order_by('-fecha')
+
+            try:
+                mesa = Mesa.objects.get(usuario=usuario)
+                mesa_serializer = MesaSerializer(mesa, context={'request': request})
+            except Mesa.DoesNotExist:
+                mesa = None
+
+            detalles_pedidos = []
+            cuenta = 0
+
+            for pedido in pedidos:
+                detalles = DetallePedido.objects.filter(pedido=pedido)
+                detalles_activos_count = detalles.filter(estado='Activo').count()
+                
+                # El serializador ahora maneja el subtotal
+                pedido_serializer = PedidoSerializer(pedido, context={'request': request})
+                detalle_serializer = DetallePedidoSerializer(detalles, many=True, context={'request': request})
+                
+                detalles_pedidos.append({
+                    'pedido': pedido_serializer.data,
+                    'detalles': detalle_serializer.data,
+                    'detalles_activos_count': detalles_activos_count
+                })
+
+                # Sumar el subtotal de los detalles al total si no está cancelado
+                if pedido.estado != 'Cancelado':
+                    for detalle in detalles:
+                        cuenta += detalle.cantidad * detalle.precio
+
+            pedidos_eliminados = pedidos.filter(estado='Cancelado').count()
+            total_pedidos = pedidos.count()
+
+            return JsonResponse({
+                'total_pedidos': total_pedidos,
+                'pedidos_eliminados': pedidos_eliminados,
+                'mesa': mesa_serializer.data,
+                'detalles_pedidos': detalles_pedidos,
+                'cuenta': cuenta
+            })
+        except Exception as e:
+            return JsonResponse({'error': f'{e}'})
+
+
+
+
 def crear_pedido_usuario(request, id):
     try:
         logueo = request.session.get("logueo", False)
@@ -2168,6 +2265,10 @@ def liberar_mesa(request, id):
         mesa.estado = mesa.DISPONIBLE
         mesa.usuario = None
         mesa.save()
+
+        pedidos_eliminados = Pedido.objects.filter(mesa = mesa)
+        pedidos_eliminados.delete()        
+
         messages.success(request, "Mesa liberada exitosamente.")
     except Exception as e:
         messages.error(request, f"Ocurrio un error: {e}")

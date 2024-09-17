@@ -57,14 +57,18 @@ class PedidoSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'mesa', 'usuario', 'fecha','comentario', 'estado', 'total']
 
 class DetallePedidoSerializer(serializers.HyperlinkedModelSerializer):
+    producto = ProductoSerializer(read_only=True)
+
+    subtotal = serializers.SerializerMethodField()
+
     class Meta:
         model = DetallePedido
-        fields = ['id', 'pedido', 'producto', 'cantidad', 'precio']
+        fields = ['id', 'pedido', 'producto', 'cantidad', 'precio', 'estado', 'motivo_eliminacion', 'subtotal']
 
-"""class InventarioSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Inventario
-        fields = ['id', 'producto', 'cantidad', 'fecha_caducidad']"""
+    def get_subtotal(self, obj):
+        return obj.cantidad * obj.precio
+
+
 
 class GaleriaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
