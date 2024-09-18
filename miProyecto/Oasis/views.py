@@ -1697,7 +1697,7 @@ class entradas_usuario_movil(APIView):
             entradas = CompraEntrada.objects.filter(usuario=usuario)
 
             if not entradas:
-                return JsonResponse({'message':'No hay entradas para este usuario'}, status=404)
+                return JsonResponse({'entradas': []}, status=200)
 
 
             entradas_info = []
@@ -1813,7 +1813,7 @@ class reservas_usuario_movil(APIView):
             reservas = Reserva.objects.filter(usuario = usuario)
 
             if not reservas:
-                return JsonResponse({'message':'No hay reservas para este usuario'}, status=404)
+                return JsonResponse({'reservas': []}, status=200)
 
             reservas_info = []
             for reserva in reservas:
@@ -1915,47 +1915,89 @@ class ver_pedido_usuario_movil(APIView):
             usuario = Usuario.objects.get(pk=user_id)
             pedidos = Pedido.objects.filter(usuario=usuario).order_by('-fecha')
 
-            try:
-                mesa = Mesa.objects.get(usuario=usuario)
-                mesa_serializer = MesaSerializer(mesa, context={'request': request})
-            except Mesa.DoesNotExist:
-                mesa = None
+            # Verificar si hay pedidos
+            if not pedidos.exists():
+                mesa_serializer_data = None
+                detalles_pedidos = []
+                cuenta = 0
+                total_pedidos = 0
+                pedidos_eliminados = 0
+            else:
+                try:
+                    mesa = Mesa.objects.get(usuario=usuario)
+                    mesa_serializer = MesaSerializer(mesa, context={'request': request})
+                    mesa_serializer_data = mesa_serializer.data
+                except Mesa.DoesNotExist:
+                    mesa_serializer_data = None
 
-            detalles_pedidos = []
-            cuenta = 0
+                detalles_pedidos = []
+                cuenta = 0
 
-            for pedido in pedidos:
-                detalles = DetallePedido.objects.filter(pedido=pedido)
-                detalles_activos_count = detalles.filter(estado='Activo').count()
-                
-                # El serializador ahora maneja el subtotal
-                pedido_serializer = PedidoSerializer(pedido, context={'request': request})
-                detalle_serializer = DetallePedidoSerializer(detalles, many=True, context={'request': request})
-                
-                detalles_pedidos.append({
-                    'pedido': pedido_serializer.data,
-                    'detalles': detalle_serializer.data,
-                    'detalles_activos_count': detalles_activos_count
-                })
+                for pedido in pedidos:
+                    detalles = DetallePedido.objects.filter(pedido=pedido)
+                    detalles_activos_count = detalles.filter(estado='Activo').count()
+                    
+                    pedido_serializer = PedidoSerializer(pedido, context={'request': request})
+                    detalle_serializer = DetallePedidoSerializer(detalles, many=True, context={'request': request})
+                    
+                    detalles_pedidos.append({
+                        'pedido': pedido_serializer.data,
+                        'detalles': detalle_serializer.data,
+                        'detalles_activos_count': detalles_activos_count
+                    })
 
-                # Sumar el subtotal de los detalles al total si no está cancelado
-                if pedido.estado != 'Cancelado':
-                    for detalle in detalles:
-                        cuenta += detalle.cantidad * detalle.precio
+                    if pedido.estado != 'Cancelado':
+                        for detalle in detalles:
+                            if detalle.estado != "Eliminado":
+                                cuenta += detalle.cantidad * detalle.precio
 
-            pedidos_eliminados = pedidos.filter(estado='Cancelado').count()
-            total_pedidos = pedidos.count()
+                pedidos_eliminados = pedidos.filter(estado='Cancelado').count()
+                total_pedidos = pedidos.count()
 
             return JsonResponse({
                 'total_pedidos': total_pedidos,
                 'pedidos_eliminados': pedidos_eliminados,
-                'mesa': mesa_serializer.data,
+                'mesa': mesa_serializer_data,
                 'detalles_pedidos': detalles_pedidos,
-                'cuenta': cuenta
+                'cuenta': cuenta,
+                'hay_pedidos': total_pedidos > 0
             })
         except Exception as e:
             return JsonResponse({'error': f'{e}'})
 
+
+
+class eliminar_pedido_usuario_movil(APIView):
+    def get(self, request, id_pedido):
+        try:
+            pedido = Pedido.objects.get(pk=id_pedido)
+            pedido.estado = pedido.CANCELADO
+            pedido.comentario = ""
+
+            detalles_pedido = DetallePedido.objects.filter(pedido=pedido)
+            for d in detalles_pedido:
+                d.estado = d.ELIMINADO
+                d.motivo_eliminacion = ""
+                d.save()
+
+            pedido.save()
+            return JsonResponse({'message':'Pedido cancelado exitosamente'})
+        except Exception as e:
+            return JsonResponse({'error': f'{e}'})
+
+
+
+class eliminar_producto_pedido_usuario_movil(APIView):
+    def get(self, request, id_detalle):
+        try:
+            detalle = DetallePedido.objects.get(pk=id_detalle)
+            detalle.estado = detalle.ELIMINADO
+            detalle.motivo_eliminacion = ""
+            detalle.save()
+
+            return JsonResponse({'message': 'Producto eliminado exitosamente'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
 
 
 

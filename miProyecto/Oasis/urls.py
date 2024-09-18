@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/1.0/reservas_detalles_usuario/<int:user_id>/<int:reserva_id>/', views.reservas_detalles_usuario_movil.as_view()),
     path('api/1.0/realizar_pedido/', views.realizar_pedido_movil.as_view()),
     path('api/1.0/pedidos_usuario/<int:user_id>/', views.ver_pedido_usuario_movil.as_view()),
+    path('api/1.0/eliminar_pedido_usuario/<int:id_pedido>/', views.eliminar_pedido_usuario_movil.as_view()),
+    path('api/1.0/eliminar_producto_pedido_usuario/<int:id_detalle>/', views.eliminar_producto_pedido_usuario_movil.as_view()),
 
 
 
