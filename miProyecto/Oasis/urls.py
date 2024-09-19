@@ -38,7 +38,11 @@ urlpatterns = [
     path('api/1.0/pedidos_usuario/<int:user_id>/', views.ver_pedido_usuario_movil.as_view()),
     path('api/1.0/eliminar_pedido_usuario/<int:id_pedido>/', views.eliminar_pedido_usuario_movil.as_view()),
     path('api/1.0/eliminar_producto_pedido_usuario/<int:id_detalle>/', views.eliminar_producto_pedido_usuario_movil.as_view()),
-
+    path('api/1.0/pagar_pedido_usuario/<int:id_usuario>/<str:codigo_mesa>/', views.pagar_pedido_usuario_movil.as_view()),
+    path('api/1.0/liberar_mesa_usuario/<str:codigo_mesa>/', views.liberar_mesa_usuario_movil.as_view()),
+    path('api/1.0/verificar_pedido_usuario/<int:id_usuario>/', views.verificar_pedido_usuario_movil.as_view()),
+    path('api/1.0/pedidos_mesa/<str:codigo_mesa>/', views.ver_pedido_mesa_movil.as_view()),
+    path('api/1.0/pedidos_mesa_cargo/<int:id_usuario>/', views.ver_mesa_cargo_movil.as_view()),
 
 
 

@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.urls import reverse
 
+
 from django.db.models import F
 from collections import defaultdict
 
@@ -16,6 +17,9 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
 import threading
+
+# Para que muestre más detalles de un error
+import traceback
 
 # Importamos todos los modelos de la base de datos
 from django.db import IntegrityError, transaction
@@ -1966,6 +1970,50 @@ class ver_pedido_usuario_movil(APIView):
             return JsonResponse({'error': f'{e}'})
 
 
+class ver_pedido_mesa_movil(APIView):
+    def get(self, request, codigo_mesa):
+        try:
+            print(f"Buscando mesa con código QR: {codigo_mesa}")
+            mesa = Mesa.objects.get(codigo_qr=codigo_mesa)
+            pedidos = Pedido.objects.filter(mesa=mesa)
+
+            mesa_serializer = MesaSerializer(mesa, context={'request': request})
+
+
+            detalles_pedidos = []
+            cuenta = 0
+
+            for pedido in pedidos:
+                detalles = DetallePedido.objects.filter(pedido=pedido)
+                detalles_activos_count = detalles.filter(estado='Activo').count()
+                
+                pedido_serializer = PedidoSerializer(pedido, context={'request': request})
+                detalle_serializer = DetallePedidoSerializer(detalles, many=True, context={'request': request})
+                
+                detalles_pedidos.append({
+                    'pedido': pedido_serializer.data,
+                    'detalles': detalle_serializer.data,
+                    'detalles_activos_count': detalles_activos_count
+                })
+
+                if pedido.estado != 'Cancelado':
+                    for detalle in detalles:
+                        if detalle.estado != "Eliminado":
+                            cuenta += detalle.cantidad * detalle.precio
+
+            pedidos_eliminados = pedidos.filter(estado='Cancelado').count()
+            total_pedidos = pedidos.count()
+
+            return JsonResponse({
+                'total_pedidos': total_pedidos,
+                'pedidos_eliminados': pedidos_eliminados,
+                'mesa': mesa_serializer.data,
+                'detalles_pedidos': detalles_pedidos,
+                'cuenta': cuenta,
+            })
+        except Exception as e:
+            return JsonResponse({'error': f'{e}'})
+
 
 class eliminar_pedido_usuario_movil(APIView):
     def get(self, request, id_pedido):
@@ -1998,6 +2046,123 @@ class eliminar_producto_pedido_usuario_movil(APIView):
             return JsonResponse({'message': 'Producto eliminado exitosamente'})
         except Exception as e:
             return JsonResponse({'error': str(e)})
+
+
+class pagar_pedido_usuario_movil(APIView):
+    def get(self, request, id_usuario, codigo_mesa):
+        try:
+            usuario = Usuario.objects.get(pk=id_usuario)
+            mesa = Mesa.objects.get(codigo_qr=codigo_mesa)
+            # Filtrar pedidos excluyendo los cancelados
+            pedidos = Pedido.objects.filter(mesa=mesa).exclude(estado='Cancelado')
+            pedidos_eliminados = Pedido.objects.filter(mesa=mesa).filter(estado='Cancelado')
+
+            # Verificar si algún pedido está en preparación
+            if any(pedido.estado == pedido.PREPARACION for pedido in pedidos):
+                    return JsonResponse({'message': 'No se pueden pagar pedidos en preparación'}, status=400)
+
+
+            # Calcular el total del pedido excluyendo los productos eliminados
+            total_pedido = sum(
+                sum(detalle.cantidad * detalle.precio for detalle in pedido.detallepedido_set.filter(estado='Activo'))
+                for pedido in pedidos
+            )
+
+            # Crear el historial de pedido
+            historial_pedido = HistorialPedido.objects.create(
+                mesa=mesa,
+                fecha=timezone.now(),
+                usuario=usuario,
+                total=total_pedido
+            )
+
+            # Agrupar productos por ID y sumar las cantidades, excluyendo los productos eliminados
+            productos_agrupados = defaultdict(lambda: {'cantidad': 0, 'precio': 0})
+            for pedido in pedidos:
+                for detalle in pedido.detallepedido_set.filter(estado='Activo'):
+                    producto_id = detalle.producto.id
+                    productos_agrupados[producto_id]['cantidad'] += detalle.cantidad
+                    productos_agrupados[producto_id]['precio'] = detalle.precio
+
+            # Crear objetos en la tabla de historial de detalles con los productos agrupados
+            for producto_id, datos in productos_agrupados.items():
+                producto = Producto.objects.get(pk=producto_id)
+                HistorialDetallePedido.objects.create(
+                    historial_pedido=historial_pedido,
+                    producto=producto,
+                    cantidad=datos['cantidad'],
+                    precio=datos['precio']
+                )
+
+            # Eliminar pedidos y detalles originales
+            pedidos.delete()
+            pedidos_eliminados.delete()
+
+            # Actualizar el estado de la mesa
+            mesa.estado = mesa.DISPONIBLE
+            mesa.usuario = None
+            mesa.save()
+
+            return JsonResponse({'message': 'Pedido pagado exitosamente!'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+
+
+class liberar_mesa_usuario_movil(APIView):
+    def get (self, request, codigo_mesa):
+        try:
+            mesa = Mesa.objects.get(codigo_qr=codigo_mesa)
+            mesa.estado = mesa.DISPONIBLE
+            mesa.usuario = None
+            mesa.save()
+
+            pedidos_eliminados = Pedido.objects.filter(mesa = mesa)
+            pedidos_eliminados.delete()        
+
+            return JsonResponse({'message':'Mesa liberada exitosamente!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+        
+
+
+
+class verificar_pedido_usuario_movil(APIView):
+    def get(self, request, id_usuario):
+        try:
+            usuario = Usuario.objects.get(pk=id_usuario)
+            pedido = Pedido.objects.filter(usuario=usuario).count()
+
+            if pedido > 0:
+                try:
+                    # Intentar obtener la mesa del usuario
+                    mesa = Mesa.objects.get(usuario=usuario)
+                    mesaSerializer = MesaSerializer(mesa, context={'request': request})
+                    return JsonResponse({'pedidos': True, 'mesa': mesaSerializer.data})
+                except ObjectDoesNotExist:
+                    # El usuario no tiene una mesa asignada
+                    return JsonResponse({'pedidos': True, 'mesa': None}, status=200)
+            else:
+                return JsonResponse({'pedidos': False}, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+
+
+
+
+class ver_mesa_cargo_movil(APIView):
+    def get(self, request, id_usuario):
+        try:
+            usuario = Usuario.objects.get(pk = id_usuario)
+            mesas = Mesa.objects.filter(usuario=usuario)
+
+
+            mesasSerializer = MesaSerializer(mesas, many=True, context={'request': request})
+
+            return JsonResponse({'mesas': mesasSerializer.data})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
 
 
 
@@ -2236,6 +2401,13 @@ def cancelar_pedido(request):
             pedido = Pedido.objects.get(pk=pedido_id)
             pedido.comentario = comentario
             pedido.estado = pedido.CANCELADO
+
+            detalles_pedido = DetallePedido.objects.filter(pedido=pedido)
+            for d in detalles_pedido:
+                d.estado = d.ELIMINADO
+                d.motivo_eliminacion = ""
+                d.save()
+
             pedido.save()
             messages.success(request, "Pedido cancelado exitosamente.")
         except Pedido.DoesNotExist:
@@ -2250,6 +2422,13 @@ def cancelar_pedido_sin_comentario(request, id_pedido, id_mesa=None, ruta=None):
         pedido = Pedido.objects.get(pk=id_pedido)
         pedido.estado = pedido.CANCELADO
         pedido.comentario = ""
+
+        detalles_pedido = DetallePedido.objects.filter(pedido=pedido)
+        for d in detalles_pedido:
+            d.estado = d.ELIMINADO
+            d.motivo_eliminacion = ""
+            d.save()
+
         pedido.save()
         messages.success(request, "Pedido cancelado exitosamente.")
     except Exception as e:
