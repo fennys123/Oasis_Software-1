@@ -48,6 +48,7 @@ class CategoriaSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'nombre', 'descripcion', 'foto']
 
 class ProductoSerializer(serializers.HyperlinkedModelSerializer):
+    categoria = CategoriaSerializer(read_only=True)
     class Meta:
         model = Producto
         fields = ['id', 'nombre', 'descripcion', 'foto', 'categoria', 'precio']

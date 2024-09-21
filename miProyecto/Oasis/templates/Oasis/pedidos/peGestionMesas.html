@@ -55,7 +55,7 @@
         <div class="tarjetaActiva">
           <section class="mesaActiva">
             <h4>{{ m.nombre }}</h4>
-            {% if user.rol == 3 %}
+            {% if m.usuario.rol == 3 %}
               <p>💁‍♂️ {{ m.usuario.nombre }}</p>
             {% else %}
               <p>{{ m.usuario.nombre }}</p>

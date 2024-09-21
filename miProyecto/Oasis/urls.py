@@ -43,6 +43,10 @@ urlpatterns = [
     path('api/1.0/verificar_pedido_usuario/<int:id_usuario>/', views.verificar_pedido_usuario_movil.as_view()),
     path('api/1.0/pedidos_mesa/<str:codigo_mesa>/', views.ver_pedido_mesa_movil.as_view()),
     path('api/1.0/pedidos_mesa_cargo/<int:id_usuario>/', views.ver_mesa_cargo_movil.as_view()),
+    path('api/1.0/reserva_escaneado/<str:codigo_qr>/', views.qr_reserva_escaneado_movil.as_view()),
+    path('api/1.0/entrada_escaneado/<str:codigo_qr>/', views.qr_entrada_escaneado_movil.as_view()),
+    path('api/1.0/categoria_productos/<int:id_categoria>/', views.categoria_productos_movil.as_view()),
+
 
 
 

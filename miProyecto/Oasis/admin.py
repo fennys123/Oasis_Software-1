@@ -52,7 +52,7 @@ class MesaAdmin(admin.ModelAdmin):
 
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'usuario','evento','mesa','fecha_compra','total','codigo_qr', 'qr_imagen']
+    list_display = ['id', 'usuario','evento','mesa','fecha_compra','total','codigo_qr', 'qr_imagen', 'estado_qr']
     search_fields =['id','usuario','evento','mesa','fecha_compra']
     list_filter = ['evento','fecha_compra']
 

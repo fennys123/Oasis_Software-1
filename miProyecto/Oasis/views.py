@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.urls import reverse
+from django.core.exceptions import ObjectDoesNotExist
+
 
 
 from django.db.models import F
@@ -1879,13 +1881,19 @@ class realizar_pedido_movil(APIView):
             usuario = Usuario.objects.get(pk=id_usuario)
             mesa = Mesa.objects.get(codigo_qr=codigo_mesa)
             
-            
+            pedidos_mesa = Pedido.objects.filter(mesa=mesa)
+            if pedidos_mesa:
+                for p in pedidos_mesa:
+                    p.usuario = usuario
+                    p.save()
+
             pedido = Pedido.objects.create(
                 mesa=mesa, 
                 total=total, 
                 usuario= usuario,
                 comentario=comentario
             )
+
             
             for p in productos_seleccionados:
                 try:
@@ -2140,7 +2148,7 @@ class verificar_pedido_usuario_movil(APIView):
                     return JsonResponse({'pedidos': True, 'mesa': mesaSerializer.data})
                 except ObjectDoesNotExist:
                     # El usuario no tiene una mesa asignada
-                    return JsonResponse({'pedidos': True, 'mesa': None}, status=200)
+                    return JsonResponse({'pedidos': False, 'mesa': None}, status=200)
             else:
                 return JsonResponse({'pedidos': False}, status=200)
 
@@ -2165,6 +2173,44 @@ class ver_mesa_cargo_movil(APIView):
             return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
 
 
+class qr_reserva_escaneado_movil(APIView):
+    def get(self, request, codigo_qr):
+        try:
+            reserva = Reserva.objects.get(codigo_qr = codigo_qr)
+            reserva.estado_qr = False
+            reserva.save()
+
+            return JsonResponse({'message':'Reserva escaneada exitosamente!'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+        
+
+class qr_entrada_escaneado_movil(APIView):
+    def get(self, request, codigo_qr):
+        try:
+            entrada = EntradasQR.objects.get(codigo_qr = codigo_qr)
+            entrada.estado_qr = False
+            entrada.save()
+
+            return JsonResponse({'message':'Entrada escaneada exitosamente!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+    
+    
+class categoria_productos_movil(APIView):
+    def get(self, request, id_categoria):
+        try:
+            categoria = Categoria.objects.get(pk = id_categoria)
+            productos = Producto.objects.filter(categoria = categoria)
+
+            productosSerializer = ProductoSerializer(productos, many=True, context={'request': request})
+
+            return JsonResponse({'productos': productosSerializer.data})
+        
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+
 
 def crear_pedido_usuario(request, id):
     try:
@@ -2185,7 +2231,14 @@ def crear_pedido_usuario(request, id):
             return redirect('pedidoEmpleado', id=id)
         
         comentario = request.POST.get("comentario", "")
+
+        pedidos_mesa = Pedido.objects.filter(mesa=mesa)
+        if pedidos_mesa:
+            for p in pedidos_mesa:
+                p.usuario = user
+                p.save()
         
+
         pedido = Pedido.objects.create(
             mesa=mesa, 
             total=sum(item['subtotal'] for item in carrito), 
