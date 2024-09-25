@@ -46,6 +46,8 @@ urlpatterns = [
     path('api/1.0/reserva_escaneado/<str:codigo_qr>/', views.qr_reserva_escaneado_movil.as_view()),
     path('api/1.0/entrada_escaneado/<str:codigo_qr>/', views.qr_entrada_escaneado_movil.as_view()),
     path('api/1.0/categoria_productos/<int:id_categoria>/', views.categoria_productos_movil.as_view()),
+    path('api/1.0/galeria_fotos/<int:id_carpeta>/', views.galeria_fotos_movil.as_view()),
+    path('api/1.0/registrar_usuario/', views.registrar_usuario_movil.as_view()),
 
 
 

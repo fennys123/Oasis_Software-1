@@ -32,6 +32,8 @@ from django.utils import timezone
 
 #APIVIEW
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
 
 
 
@@ -40,13 +42,15 @@ from rest_framework import viewsets
 from .serializers import *
 from rest_framework import viewsets
 
+
 #Importar el crypt
 from .crypt import *
 
 #Importar todos los modelos de la base de datos.
 from .models import *
 
-
+#Validar la fecha de Nacimiento
+from datetime import datetime
 
 #Enviar emails por un hilo separado
 class EmailThread(threading.Thread):
@@ -66,6 +70,12 @@ class EmailThread(threading.Thread):
             html_message=self.message  # Aquí va el mensaje en HTML
         )
 
+
+def calcular_edad(fecha_nacimiento):
+    hoy = datetime.today()
+    fecha_nac = datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
+    edad = hoy.year - fecha_nac.year - ((hoy.month, hoy.day) < (fecha_nac.month, fecha_nac.day))
+    return edad
 
 
 def index(request):
@@ -129,6 +139,7 @@ def registro(request):
     return render(request, 'Oasis/registro/registro.html')
 
 
+
 def crear_usuario_registro(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -139,21 +150,34 @@ def crear_usuario_registro(request):
         password2 = request.POST.get('password2')
 
         if password1 != password2:
-            messages.error(request, "Las contraseñas no coinciden")
+            messages.warning(request, "Las contraseñas no coinciden")
             return redirect("registro")
-        else:
-            try:
-                q = Usuario.objects.create(
-                    nombre = nombre,
-                    fecha_nacimiento = fecha_nacimiento,
-                    email = email,
-                    cedula = cedula,
-                    password = hash_password(password1)
-                )
-                q.save()
-                messages.success(request, "Usuario creado exitosamente")
-            except Exception as e:
-                messages.error(request, f"Error: {e}")
+
+        if Usuario.objects.filter(email=email).exists():
+            messages.warning(request, "El correo ya está registrado")
+            return redirect("registro")
+
+        if Usuario.objects.filter(cedula=cedula).exists():
+            messages.warning(request, "La cédula ya está registrada")
+            return redirect("registro")
+
+        edad = calcular_edad(fecha_nacimiento)
+        if edad < 18:
+            messages.warning(request, "Debes ser mayor de 18 años para registrarte")
+            return redirect("registro")
+        
+        try:
+            q = Usuario.objects.create(
+                nombre=nombre,
+                fecha_nacimiento=fecha_nacimiento,
+                email=email,
+                cedula=cedula,
+                password=hash_password(password1)
+            )
+            q.save()
+            messages.success(request, "Usuario creado exitosamente")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
 
     return redirect("registro")
 
@@ -341,6 +365,19 @@ def guUsuariosCrear(request):
 
             if foto is None:
                 foto = "Img_usuarios/default.png"
+
+            if Usuario.objects.filter(email=email).exists():
+                messages.warning(request, "El correo ya está registrado")
+                return redirect("guInicio")
+
+            if Usuario.objects.filter(cedula=cedula).exists():
+                messages.warning(request, "La cedula ya está registrada")
+                return redirect("guInicio")
+            
+            edad = calcular_edad(fecha_nacimiento)
+            if edad < 18:
+                messages.warning(request, "Debe ser mayor de 18 años para registrarse")
+                return redirect("guInicio")
             
             q = Usuario(
                 nombre=nombre,
@@ -1603,6 +1640,42 @@ def crear_pedido_admin(request, id):
     return redirect('peGestionMesas')
 
 
+
+class registrar_usuario_movil(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            nombre = request.data.get('nombre')
+            email = request.data.get('email')
+            cedula = request.data.get('cedula')
+            fecha_nacimiento = request.data.get('fechaNacimiento')
+            password1 = request.data.get('password1')
+            password2 = request.data.get('password2')
+
+            if password1 != password2:
+                return JsonResponse({'message': 'Las contraseñas no coinciden'}, status=400)
+            
+            if Usuario.objects.filter(email=email).exists():
+                return JsonResponse({'message': 'El correo ya está registrado'}, status=400)
+
+            if Usuario.objects.filter(cedula=cedula).exists():
+                return JsonResponse({'message': 'La cedula ya está registrada'}, status=400)
+            
+            else:
+                q = Usuario.objects.create(
+                    nombre = nombre,
+                    fecha_nacimiento = fecha_nacimiento,
+                    email = email,
+                    cedula = cedula,
+                    password = hash_password(password1)
+                )
+                q.save()
+                return JsonResponse({'message': 'Usuario registrado existosamente!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+
+
 class token_qr_movil(APIView):
     def get(self, request, mesa):
         try:
@@ -2210,6 +2283,19 @@ class categoria_productos_movil(APIView):
         
         except Exception as e:
             return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
+        
+
+class galeria_fotos_movil(APIView):
+    def get(self, request, id_carpeta):
+        try:
+            carpeta = Galeria.objects.get(pk = id_carpeta)
+            fotos = Fotos.objects.filter(carpeta = carpeta)
+
+            fotosSerializer = FotosSerializer(fotos, many=True, context={'request': request})
+            return JsonResponse({'fotos': fotosSerializer.data})
+        
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'trace': traceback.format_exc()}, status=500)
 
 
 def crear_pedido_usuario(request, id):
@@ -2752,6 +2838,7 @@ class CustomAuthToken(ObtainAuthToken):
 				'email': usuario.email,
 				'nombre': usuario.nombre,
 				'rol': usuario.rol,
+                'estado': usuario.estado,
 				'foto': usuario.foto.url
 			}
 		})
