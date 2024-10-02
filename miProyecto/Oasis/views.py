@@ -35,6 +35,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
 
+#PARA EL PDF
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
+import os
+import tempfile
+from django.core.files import File
+
 
 
 from rest_framework import viewsets
@@ -69,7 +76,6 @@ class EmailThread(threading.Thread):
             recipient_list=self.recipient_list,
             html_message=self.message  # Aquí va el mensaje en HTML
         )
-
 
 def calcular_edad(fecha_nacimiento):
     hoy = datetime.today()
@@ -1324,7 +1330,14 @@ def comprar_entradas(request, id):
     return JsonResponse({'messages': messages})
 
 
-
+def generar_pdf_reserva(request, reserva):
+    html_string = render_to_string('Oasis/emails/pdf/reserva_pdf_template.html', {'reserva': reserva, 'request': request})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reserva.pdf"'
+    pisa_status = pisa.CreatePDF(html_string, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error al generar PDF')
+    return response
 
 def reservar_mesa(request, id):
     logueo = request.session.get("logueo", False)
@@ -1343,6 +1356,7 @@ def reservar_mesa(request, id):
         total = int(data.get("total_general", 0))
 
         if evento.entradas_disponibles >= mesa.capacidad:
+            # Crear la reserva
             reserva = Reserva.objects.create(
                 usuario=user, 
                 evento=evento,  
@@ -1358,22 +1372,43 @@ def reservar_mesa(request, id):
             mesa.estado_reserva = 'Reservada'
             mesa.save()
 
-            # Enviar correo en un hilo separado
-            destinatario = user.email
-            mensaje = f"""
-                <h1 style='color:blue;'>Oasis</h1>
-                <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
-                <p>Este es su código QR para acceder:</p>
-                <img src="{reserva.qr_imagen.url}" alt="Código QR"/>
-            """
-            EmailThread('Reserva en Oasis', mensaje, [destinatario]).start()
+            # Generar el PDF
+            pdf = generar_pdf_reserva(request, reserva)
 
-            messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
+            if pdf:
+                destinatario = user.email
+                contexto = {
+                    'reserva': reserva,
+                    'request': request
+                }
+                mensaje_html = render_to_string('Oasis/emails/plantillas/reserva_email_template.html', contexto)
+
+                # Guardar el PDF en un archivo temporal
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+                    temp_pdf.write(pdf.content)
+                    temp_pdf_path = temp_pdf.name
+
+                # Enviar el correo con el PDF adjunto
+                email = EmailMessage(
+                    subject='Reserva exitosa en Oasis',
+                    body=mensaje_html,
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[destinatario],
+                )
+                email.attach_file(temp_pdf_path)  # Adjuntar el archivo PDF
+                email.content_subtype = 'html'  # Asegurarse de que el correo sea HTML
+                email.send()  # Enviar el correo
+
+                messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
+                
+                # Eliminar el archivo temporal después de enviar
+                os.remove(temp_pdf_path)
+            else:
+                messages.append({'message_type': 'error', 'message': 'Error al generar el PDF.'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})
 
     return JsonResponse({'messages': messages})
-
 
 
 def eliminar_reserva(request, id):
