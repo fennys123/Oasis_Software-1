@@ -1,4 +1,3 @@
-
 {% load static %}
 {% load humanize %}
 
@@ -19,7 +18,7 @@
         <!-- Contenido principal -->
         <div style="padding: 0; color: #333;">
             <h2 style=" font-size: 16px; text-align: left; color: #5a2c7d; margin-top: 30px; margin-bottom: 10px;">Estimado/a {{ reserva.usuario.nombre }},</h2>
-            <p style=" font-size: 16px;">Gracias por elegir Oasis Nigth Club. A continuación, encontrarás los detalles de tu reserva:</p>
+            <p style=" font-size: 16px;">Gracias por elegir Oasis Night Club. A continuación, encontrarás los detalles de tu reserva:</p>
 
             <!-- Sección de la reserva usando tabla -->
             <table style="width: 100%; background-color: #f3eaf7; border-radius: 20px; padding: 10px; margin: 30px auto;  font-size: 12px;">
@@ -42,7 +41,7 @@
             <table style="width: 100%; background-color: #f3eaf7; border-radius: 20px; padding: 10px; margin: 30px auto;  font-size: 12px;">
                 <tr>
                     <td style="text-align: center;">
-                        <img src="{{ request.scheme }}://{{ request.get_host }}{{ reserva.qr_imagen.url }}" alt="{{ reserva.evento.nombre }}" width="220px" height="200px" style="border-radius: 8px;">
+                        <img src="{{ request.scheme }}://{{ request.get_host }}{{ reserva.qr_imagen.url }}" alt="código QR" width="220px" height="200px" style="border-radius: 8px;">
                     </td>
                     <td style="padding-left: 20px;">
                         <p style="margin-top: 30px; padding: 0;">Este es el QR de tu reserva, compartelo con tus invitados.</p>
@@ -53,7 +52,7 @@
 
             <!-- Mensaje final -->
             <p style="font-size: 16px;">Si tienes alguna duda o inconveniente con tu reserva, no dudes en contactarnos al (+57) 305 277 7073 o (+57) 321 123 4567 o por correo electrónico a reservas@oasisdiscoteca.com. Estamos aquí para ayudarte.</p>
-            <p style="font-size: 16px; margin-bottom: 50px;">Esperamos verte pronto y que disfrutes de una experiencia increíble en Oasis Nigth Club.</p>
+            <p style="font-size: 16px; margin-bottom: 50px;">Esperamos verte pronto y que disfrutes de una experiencia increíble en Oasis Night Club.</p>
         </div>
 
         <!-- Pie de página -->

@@ -12,7 +12,7 @@
 </head>
 <body>
     <div class="container text-center">
-        <img src="{{ request.scheme }}://{{ request.get_host }}/static/Oasis/img/logoOasis.png" alt="cabecera_reserva">
+        <img src="{{ request.scheme }}://{{ request.get_host }}/static/Oasis/img/title-reserva-email.png" alt="cabecera_reserva">
         <p>{{ request.scheme }}://{{ request.get_host }}/static/Oasis/img/title-reserva-email.png</p>
         <p>Hola {{ reserva.usuario.nombre }},</p>
         <p>Tu reserva para el evento <strong>{{ reserva.evento.nombre }}</strong> en la mesa <strong>{{ reserva.mesa.nombre }}</strong> el día <strong>{{ reserva.evento.fecha }}</strong> ha sido confirmada.</p>

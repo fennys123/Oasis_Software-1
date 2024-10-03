@@ -86,8 +86,11 @@ def calcular_edad(fecha_nacimiento):
 
 def index(request):
     logueo = request.session.get("logueo", False)
+    menu = Categoria.objects.all()
+    galeria = Galeria.objects.all()
+    contexto = {'menu': menu, 'galeria': galeria}
     if logueo == False:
-        return render(request, "Oasis/index.html")
+        return render(request, "Oasis/index.html", contexto)
     else:
         return redirect("inicio")
 
@@ -134,7 +137,9 @@ def inicio(request):
         try:
             usuario_id = request.session['logueo']['id']
             usuario = Usuario.objects.get(pk=usuario_id)
-            contexto = {'data': usuario}
+            menu = Categoria.objects.all()
+            galeria = Galeria.objects.all()
+            contexto = {'data': usuario, 'menu': menu, 'galeria':galeria}
             return render(request, "Oasis/index.html", contexto)
         except Usuario.DoesNotExist:
             messages.error(request, "El usuario no existe")
@@ -1243,6 +1248,18 @@ def front_eventos_info(request, id):
     contexto = {"data": user, "evento": evento, "mesas": mesas, "total_defecto": total_defecto, "listMesas": listMesas}
     return render(request, "Oasis/front_eventos/front_eventos_info.html", contexto)
 
+
+
+def generar_pdf_entrada(request, compra, entrada):
+    html_string = render_to_string('Oasis/emails/pdf/entrada_pdf_template.html', {'compra': compra, 'entrada': entrada, 'request': request})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="entrada_{entrada.id}.pdf"'
+    pisa_status = pisa.CreatePDF(html_string, dest=response)
+    if pisa_status.err:
+        return None
+    return response
+
+
 def comprar_entradas(request, id):
     logueo = request.session.get("logueo", False)
     messages = []
@@ -1295,33 +1312,33 @@ def comprar_entradas(request, id):
 
             qr_entradas = EntradasQR.objects.filter(compra=compra.id)
 
-            # Enviar correo en un hilo separado
             destinatario = user.email
-            mensaje = f"""
-                <h1 style='color:blue;'>Oasis</h1>
-                <p>Usted ha comprado <b>{qr_entradas.count()}</b> {'entradas' if qr_entradas.count() > 1 else 'entrada'} para el evento <b>{compra.evento.nombre}</b> en la fecha <b>{compra.evento.fecha}</b></p>
-                {'<p>Estos son los códigos QR de las entradas:' if qr_entradas.count() > 1 else '<p>Este es el código QR de la entrada:'}
-
-                <table style='border-collapse: collapse; width: 100%;'>
-                    <thead>
-                        <tr>
-                            <th style='border: 1px solid black; padding: 8px;'>Tipo de Entrada</th>
-                            <th style='border: 1px solid black; padding: 8px;'>Código QR</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {''.join(f'''
-                        <tr>
-                            <td style='border: 1px solid black; padding: 8px;'>{e.tipo_entrada}</td>
-                            <td style='border: 1px solid black; padding: 8px;'>
-                                <img src="{e.qr_imagen.url}" alt="Código QR" width="100">
-                            </td>
-                        </tr>''' for e in qr_entradas)}
-                    </tbody>
-                </table>
-            """
+            mensaje_html = render_to_string('Oasis/emails/plantillas/entrada_email_template.html', {
+                'compra': compra,
+                'entradas': qr_entradas,
+                'request': request
+            })
             
-            EmailThread('Compra de entradas en Oasis', mensaje, [destinatario]).start()
+            email = EmailMessage(
+                subject='Compra de entradas en Oasis Night Club',
+                body=mensaje_html,
+                from_email=settings.EMAIL_HOST_USER,
+                to=[destinatario],
+            )
+            email.content_subtype = 'html' 
+
+            # Generar y adjuntar PDFs por cada entrada
+            for entrada in qr_entradas:
+                pdf = generar_pdf_entrada(request, compra, entrada)
+                if pdf:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+                        temp_pdf.write(pdf.content)
+                        temp_pdf_path = temp_pdf.name
+                    email.attach_file(temp_pdf_path)
+                    os.remove(temp_pdf_path)
+
+            # Enviar el correo
+            email.send()
 
             messages.append({'message_type': 'success', 'message': 'Entradas compradas correctamente'})
         else:
@@ -1390,7 +1407,7 @@ def reservar_mesa(request, id):
 
                 # Enviar el correo con el PDF adjunto
                 email = EmailMessage(
-                    subject='Reserva exitosa en Oasis',
+                    subject='Reserva exitosa en Oasis Night Club',
                     body=mensaje_html,
                     from_email=settings.EMAIL_HOST_USER,
                     to=[destinatario],
