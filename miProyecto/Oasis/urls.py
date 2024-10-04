@@ -176,10 +176,15 @@ urlpatterns = [
 
 #   FRONT PRODUCTOS
     path('front_productos/', views.front_productos, name='front_productos'),
+    path('front_producto_info/<int:id>', views.front_producto_info, name='front_producto_info'),
 
 #   FRONT EVENTOS
     path('front_eventos/', views.front_eventos, name='front_eventos'),
     path('front_eventos_info/<int:id>/', views.front_eventos_info, name='front_eventos_info'),
+
+#   FRONT GALERIA
+    path('front_galeria/', views.front_galeria, name='front_galeria'),
+    path('front_fotos/<int:id>', views.front_fotos, name='front_fotos'),
 
 
 # CARRITO DE COMPRA USUARIO

@@ -1204,19 +1204,47 @@ def front_productos(request):
     logueo = request.session.get("logueo", False)
     user = None
     if logueo:
-        user = Usuario.objects.get(pk = logueo["id"])
+        user = Usuario.objects.get(pk=logueo["id"])
+    
     categorias = Categoria.objects.all()
-
     cat = request.GET.get("cat")
-
-    if cat == None:
+    
+    sin_productos = False
+    nombre_categoria = None
+    
+    if cat is None:
         productos = Producto.objects.all()
+        if len(productos) == 0:
+            sin_productos = True
     else:
         c = Categoria.objects.get(pk=cat)
         productos = Producto.objects.filter(categoria=c)
+        nombre_categoria = c.nombre
     
-    contexto = {"data": user,"productos": productos, "categorias": categorias}
+    contexto = {
+        "data": user,
+        "productos": productos,
+        "categorias": categorias,
+        "sin_productos": sin_productos,
+        "nombre_categoria": nombre_categoria,
+        "url": "front_productos"
+    }
+    
     return render(request, "Oasis/front_productos/front_productos.html", contexto)
+
+
+
+def front_producto_info(request, id):
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk=logueo["id"])
+
+    producto = Producto.objects.get(pk=id)
+
+    contexto = {"data": user, "producto": producto, "url": "front_producto_info"}
+
+    return render(request, "Oasis/front_productos/front_producto_info.html", contexto)
 
 
 def front_eventos(request):
@@ -1226,7 +1254,7 @@ def front_eventos(request):
         user = Usuario.objects.get(pk = logueo["id"])
     eventos = Evento.objects.all()
 
-    contexto = {"data": user, "eventos": eventos}
+    contexto = {"data": user, "eventos": eventos, "url": "front_eventos"}
     return render(request, "Oasis/front_eventos/front_eventos.html", contexto)
 
 def front_eventos_info(request, id):
@@ -1245,10 +1273,30 @@ def front_eventos_info(request, id):
 
     total_defecto = evento.precio_entrada + evento.precio_vip
 
-    contexto = {"data": user, "evento": evento, "mesas": mesas, "total_defecto": total_defecto, "listMesas": listMesas}
+    contexto = {"data": user, "evento": evento, "mesas": mesas, "total_defecto": total_defecto, "listMesas": listMesas, 'url': 'front_eventos_info'}
     return render(request, "Oasis/front_eventos/front_eventos_info.html", contexto)
 
 
+
+def front_galeria(request):
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk = logueo["id"])
+    q = Galeria.objects.all()
+    contexto = {'data' : user, 'galeria': q, 'url': 'front_galeria'}
+    return render(request, "Oasis/front_galeria/front_galeria.html", contexto)
+
+
+def front_fotos(request, id):
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk = logueo["id"])
+    q = Galeria.objects.get(pk=id)
+    fotos = Fotos.objects.filter(carpeta = q)
+    contexto = {'data' : user, 'galeria': q,'fotos': fotos, 'url': 'front_fotos'}
+    return render(request, "Oasis/front_galeria/front_fotos.html", contexto)
 
 def generar_pdf_entrada(request, compra, entrada):
     html_string = render_to_string('Oasis/emails/pdf/entrada_pdf_template.html', {'compra': compra, 'entrada': entrada, 'request': request})
@@ -1472,8 +1520,18 @@ def pedidoUsuario(request, id):
     mesa = get_object_or_404(Mesa, pk=id)
     carrito = request.session.get("carrito", [])
     productos = Producto.objects.all()
+    categorias = Categoria.objects.all()
 
-    contexto = {'data': user, 'productos': productos, 'mesa': mesa, 'carrito': carrito}
+    cat = request.GET.get("cat")
+
+    if cat is not None:
+        cat = int(cat)
+        c = Categoria.objects.get(pk=cat)
+        productos = Producto.objects.filter(categoria=c)
+    else:
+        productos = Producto.objects.all()
+
+    contexto = {'data': user, 'productos': productos, 'mesa': mesa, 'carrito': carrito, 'cat': cat, 'categorias':categorias}
     return render(request, "Oasis/front_pedidos/pedido_usuario.html", contexto)
     
 
