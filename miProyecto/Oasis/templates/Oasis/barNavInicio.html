@@ -65,12 +65,12 @@
                 <a href="{% url 'front_galeria' %}" class="nav-item nav-link {% if url == 'front_galeria' or url == 'front_fotos' %}active{% endif %}">Galería</a>
               </div>
               
-              {% if data %}
-                {% if data.rol == 4 %}
+              {% if user %}
+                {% if user.rol == 4 %}
                   <a href="{% url 'escanear_mesa' %}" class="btn btn-primary d-none d-lg-block">Pedir Ahora</a>
                   <div class="dropdown dropstart">
                     <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                      <img src="{{ data.foto.url }}" alt="LogoUsuario" width="40px" height="40px" class="rounded-circle">
+                      <img src="{{ user.foto.url }}" alt="LogoUsuario" width="40px" height="40px" class="rounded-circle">
                     </button>
                     <ul class="dropdown-menu cerrar">
                       <li><a class="dropdown-item" href="{% url 'ver_perfil' %}">Perfil</a></li>
@@ -81,14 +81,14 @@
                 {% else %}
                   <div class="dropdown dropstart">
                     <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                      <img src="{{ data.foto.url }}" alt="LogoUsuario" width="40px" height="40px" class="rounded-circle">
+                      <img src="{{ user.foto.url }}" alt="LogoUsuario" width="40px" height="40px" class="rounded-circle">
                     </button>
                     <ul class="dropdown-menu cerrar">
-                      {% if data.rol == 1 %}
+                      {% if user.rol == 1 %}
                         <li><a class="dropdown-item" href="{% url 'ver_perfil' %}">Administrador</a></li>
-                      {% elif data.rol == 2 %}
+                      {% elif user.rol == 2 %}
                         <li><a class="dropdown-item" href="{% url 'ver_perfil' %}">Bartender</a></li>
-                      {% elif data.rol == 3 %}
+                      {% elif user.rol == 3 %}
                         <li><a class="dropdown-item" href="{% url 'ver_perfil' %}">Mesero</a></li>
                       {% endif %}
                       <li><hr class="dropdown-divider"></li>
