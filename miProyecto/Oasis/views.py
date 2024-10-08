@@ -147,7 +147,13 @@ def inicio(request):
         return redirect("index")
 
 def registro(request):
-    return render(request, 'Oasis/registro/registro.html')
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk=logueo["id"])
+
+    contexto = {'user': user}
+    return render(request, 'Oasis/registro/registro.html', contexto)
 
 
 
@@ -1155,7 +1161,7 @@ def gaFotos(request, id):
     user = Usuario.objects.get(pk = logueo["id"])
     carpeta = Galeria.objects.get(pk = id)
     fotos = Fotos.objects.filter(carpeta = carpeta)
-    contexto = {'user':user, 'carpeta': carpeta, "fotos": fotos}
+    contexto = {'user':user, 'carpeta': carpeta, "fotos": fotos,'url': 'gaFotos'}
     return render(request, 'Oasis/galeria/gaFotos.html', contexto)
 
 

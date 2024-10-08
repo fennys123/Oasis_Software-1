@@ -64,34 +64,46 @@
           
           <div class="sidebar">
             <ul class="items-barra">
-              <li><a href="{% url 'guInicio' %}" {% if url == 'Gestion_Usuarios' or url == 'Usuarios_Bloqueados' %} class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-users"></i></span>
-                <span class="title">Usuarios</span>
-              </a></li>
-              <li><a href="{% url 'Productos' %}" {% if url == 'Gestion_Productos' or url == 'Inv_Detalle_Producto' %} class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-boxes"></i></span>
-                <span class="title">Inventario</span>
-              </a></li>
-              <li><a href="{% url 'Mesas'%}" {% if url == 'Gestion_Mesas' %} class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-chair"></i></span>
-                <span class="title">Mesas</span>
-              </a></li>
-              <li><a href="{% url 'peInicio' %}" {% if url == 'Gestion_Pedidos' or url == 'Mesas' or url == 'Agregar_Pedido' or url == 'Historial_Pedidos' or url == 'ver_pedidos_mesa' %} class="active" {% endif %} >
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'guInicio' %}" {% if url == 'Gestion_Usuarios' or url == 'Usuarios_Bloqueados' %} class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-users"></i></span>
+                  <span class="title">Usuarios</span>
+                </a></li>
+              {% endif %}
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'Productos' %}" {% if url == 'Gestion_Productos' or url == 'Inv_Detalle_Producto' %} class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-boxes"></i></span>
+                  <span class="title">Inventario</span>
+                </a></li>
+              {% endif %}
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'Mesas'%}" {% if url == 'Gestion_Mesas' %} class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-chair"></i></span>
+                  <span class="title">Mesas</span>
+                </a></li>
+              {% endif %}
+              <li><a href="{% if user.rol == 2 or user.rol == 1 %} {% url 'peInicio' %} {% else %} {% url 'peGestionMesas' %} {% endif %}" {% if url == 'Gestion_Pedidos' or url == 'Mesas' or url == 'Agregar_Pedido' or url == 'Historial_Pedidos' or url == 'ver_pedidos_mesa' %} class="active" {% endif %} >
                 <span class="icon"><i class="fas fa-concierge-bell"></i></span>
                 <span class="title">Pedidos</span>
               </a></li>
-              <li><a href="{% url 'Eventos' %}" {% if url == 'Gestion_Eventos' or url == 'Reservas' or url == 'Evento_Entradas' %}class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-calendar"></i></span>
-                <span class="title">Eventos</span>
-              </a></li>
-              <li><a href="{% url 'Menu' %}" {% if url == 'Gestion_Menu' or url == 'Productos' or url == 'Me_Detalle_Producto' %} class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
-                <span class="title">Menú</span>
-              </a></li>
-              <li><a href="{% url 'gaInicio' %}" {% if url == 'Gestion_Galeria' %} class="active" {% endif %}>
-                <span class="icon"><i class="fas fa-images"></i></span>
-                <span class="title">Galería</span>
-              </a></li>
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'Eventos' %}" {% if url == 'Gestion_Eventos' or url == 'Reservas' or url == 'Evento_Entradas' %}class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-calendar"></i></span>
+                  <span class="title">Eventos</span>
+                </a></li>
+              {% endif %}
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'Menu' %}" {% if url == 'Gestion_Menu' or url == 'Productos' or url == 'Me_Detalle_Producto' %} class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                  <span class="title">Menú</span>
+                </a></li>
+              {% endif %}
+              {% if user.rol == 1 %}
+                <li><a href="{% url 'gaInicio' %}" {% if url == 'Gestion_Galeria' or url == 'gaFotos' %} class="active" {% endif %}>
+                  <span class="icon"><i class="fas fa-images"></i></span>
+                  <span class="title">Galería</span>
+                </a></li>
+              {% endif %}
             </ul>
             <ul class="items-barra logout">
               <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'reservas' or url == 'reservas_info' or url == 'entradas' or url == 'entradas_info' %} class="active" {% endif %}>
@@ -138,7 +150,7 @@
 
             var table = $('#table').DataTable({
                 ordering: true,
-                searching: false,
+                searching: true,
                 language: {
                 "decimal": "",
                 "emptyTable": "No hay información",
