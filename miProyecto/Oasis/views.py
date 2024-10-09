@@ -389,6 +389,16 @@ def guUsuariosCrear(request):
             if foto is None:
                 foto = "Img_usuarios/default.png"
 
+            try:
+                cedula = int(cedula)
+                if cedula <= 0 or len(str(cedula)) != 10:
+                    messages.warning(request, "La cédula debe ser mayor a 0 y tener 10 dígitos")
+                    return redirect("guInicio")
+            except ValueError:
+                messages.warning(request, "La cédula debe ser un número válido")
+                return redirect("guInicio")
+
+
             if Usuario.objects.filter(email=email).exists():
                 messages.warning(request, "El correo ya está registrado")
                 return redirect("guInicio")
@@ -443,6 +453,28 @@ def guUsuariosActualizar(request, id):
         rol = request.POST.get('rol')
         estado = request.POST.get('Estado')
         foto_nueva = request.FILES.get('foto_nueva')
+
+        try:
+            cedula = int(cedula)
+            if cedula <= 0 or len(str(cedula)) != 10:
+                messages.warning(request, "La cédula debe ser mayor a 0 y tener 10 dígitos")
+                return redirect("guInicio")
+        except ValueError:
+            messages.warning(request, "La cédula debe ser un número válido")
+            return redirect("guInicio")
+
+        if Usuario.objects.filter(email=email).exclude(pk=id).exists():
+            messages.warning(request, "El correo ya está registrado por otro usuario")
+            return redirect("guInicio")
+
+        if Usuario.objects.filter(cedula=cedula).exclude(pk=id).exists():
+            messages.warning(request, "La cédula ya está registrada por otro usuario")
+            return redirect("guInicio")
+        
+        edad = calcular_edad(fecha_nacimiento)
+        if edad < 18:
+            messages.warning(request, "Debe ser mayor de 18 años para registrarse")
+            return redirect("guInicio")
 
         try:
             q = Usuario.objects.get(pk=id)
@@ -593,6 +625,18 @@ def crearProducto(request):
             if foto == None:
                 foto = "Img_productos/default.png"
 
+            if int(pre) <= 0:
+                messages.warning(request, "El precio debe ser mayor a 0")
+                return redirect("Productos")
+            
+            if inventario <= 0:
+                messages.warning(request, "El inventario debe ser mayor a 0")
+                return redirect("Productos")
+
+            if Producto.objects.filter(nombre=nom).exists():
+                messages.warning(request, "Ya existe un producto con ese nombre")
+                return redirect("Productos")
+
             q = Producto(
                 nombre=nom,
                 descripcion=desc,
@@ -630,6 +674,18 @@ def actualizarProducto(request, id):
         precio_str = precio_str.replace(',', '.')
         pre = float(precio_str)
         foto_nueva = request.FILES.get('foto_nueva')
+
+        if int(pre) <= 0:
+            messages.warning(request, "El precio debe ser mayor a 0")
+            return redirect("Productos")
+        
+        if inventario <= 0:
+            messages.warning(request, "El inventario debe ser mayor a 0")
+            return redirect("Productos")
+
+        if Producto.objects.filter(nombre=nom).exclude(pk=id).exists():
+            messages.warning(request, "Ya existe otro producto con ese nombre")
+            return redirect("Productos")
 
         try:
             q = Producto.objects.get(pk=id)
@@ -736,6 +792,10 @@ def crearMesa(request):
             nom = request.POST.get('nombre')
             cap = int(request.POST.get('capacidad'))
             precio = int(request.POST.get('precio'))
+
+            if precio <= 0:
+                messages.warning (request, 'El precio de cada mesa debe ser mayor a 0.')
+                return redirect('Mesas')
             
             if Mesa.objects.filter(nombre=nom).count() == 0:
                 if 4 <= cap <= 8:
@@ -748,9 +808,9 @@ def crearMesa(request):
                     q.save()
                     messages.success(request, "Mesa Registrada Correctamente!")
                 else:
-                    messages.warning (request, f'Incorrecto: La capacidad de cada mesa debe ser mayor a 4 o menor a 8.')
+                    messages.warning (request, f'La capacidad de cada mesa debe ser mayor a 4 o menor a 8.')
             else:
-                messages.warning (request, f'Incorrecto: Esta mesa ya esta creada en el sistema.')
+                messages.warning (request, f'Esta mesa ya esta creada en el sistema.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
         return redirect('Mesas')
@@ -765,9 +825,15 @@ def mesaActualizar(request, id):
         precio = int(request.POST.get('precio'))
         try:
             if Mesa.objects.filter(nombre=nom).exclude(pk=id).exists():
-                messages.warning(request, f'Incorrecto: Esta mesa ya está creada en el sistema con otro ID.')
+                messages.warning(request, 'Esta mesa ya está creada en el sistema con otro ID.')
+
             elif cap > 9 or cap < 4:
-                messages.warning (request, f'Incorrecto: La capacidad de cada mesa debe ser mayor a 4 o menor a 8')
+                messages.warning (request, 'La capacidad de cada mesa debe ser mayor a 4 o menor a 8')
+            
+            elif precio <= 0:
+                messages.warning (request, 'El precio de cada mesa debe ser mayor a 0.')
+                return redirect('Mesas')
+            
             else:
                 q = Mesa.objects.get(pk=id)
                 q.nombre = nom
@@ -803,7 +869,7 @@ def reservasMesa(request, id):
     except Exception as e:
         messages.error(request, f'Error: {e}')
 
-    return render(request, "Oasis/mesas/reservasMesa.html", {'user': user, 'mesa': Mesa.objects.get(pk = id),'reservas' : q})
+    return render(request, "Oasis/mesas/reservasMesa.html", {'user': user, 'mesa': Mesa.objects.get(pk = id),'reservas' : q, 'url': "reservasMesa"})
 
 
 
@@ -832,6 +898,28 @@ def crearEvento(request):
 
             if flyer == None:
                 flyer = "Img_eventos/default.png"
+
+            if Evento.objects.filter(nombre=nom, fecha=date).exists():
+                for i in Evento.objects.filter(nombre=nom, fecha=date):
+                    if i.estado == True:
+                        messages.warning(request, 'Este evento ya está creado en el sistema para esta fecha.')
+                        return redirect('Eventos')
+            
+            if date < datetime.now().strftime("%Y-%m-%d"):
+                messages.warning (request, 'La fecha debe ser mayor o igual a la actual.')
+                return redirect('Eventos')
+            
+            if int(general) <= 0:
+                messages.warning (request, 'La entrada general debe ser mayor a 0.')
+                return redirect('Eventos')
+            
+            if int(vip) <= 0:
+                messages.warning (request, 'La entrada VIP debe ser mayor a 0.')
+                return redirect('Eventos')
+            
+            if int(aforo) <= 0:
+                messages.warning (request, 'El aforo debe ser mayor a 0.')
+                return redirect('Eventos')
 
             # INSERT INTO Evento VALUES (nom, date, time, desc, foto)
             q = Evento(
@@ -951,6 +1039,7 @@ def eliminarEvento(request, id):
                     email.send()
                 except Exception as e:
                     messages.error(request, f"Error al enviar el correo: {e}")
+                    
 
         messages.success(request, "Evento Eliminado Correctamente!")
 
@@ -958,6 +1047,27 @@ def eliminarEvento(request, id):
         messages.error(request, f'Error: {e}')
     
     return redirect('Eventos')
+
+def eliminarEventoDefinitivo(request, id):
+    try:
+        evento = Evento.objects.get(pk=id)
+
+        if CompraEntrada.objects.filter(evento=evento).exists():
+            messages.warning(request, "No puedes eliminar un evento que tiene entradas por resolver")
+            return redirect('EventosEliminados')
+        
+        elif Reserva.objects.filter(evento=evento).exists():
+            messages.warning(request, "No puedes eliminar un evento que tiene reservas por resolver")
+            return redirect('EventosEliminados')
+        
+        else:
+            evento.delete()
+            messages.success(request, "Evento eliminado correctamente")
+            return redirect('EventosEliminados')
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+        return redirect('EventosEliminados')
+
 
 def actualizarEvento(request, id):
     if request.method == "POST":
@@ -969,6 +1079,30 @@ def actualizarEvento(request, id):
         aforo = request.POST.get('aforo')
         desc = request.POST.get('descripcion')
         foto_nueva = request.FILES.get('foto_nueva')
+
+        if Evento.objects.filter(nombre=nom, fecha=date).exclude(pk=id).exists():
+            for i in Evento.objects.filter(nombre=nom, fecha=date).exclude(pk=id):
+                if i.estado == True:
+                    messages.warning(request, 'Este evento ya está creado en el sistema para esta fecha.')
+                    return redirect('Eventos')
+        
+        if date < datetime.now().strftime("%Y-%m-%d"):
+            messages.warning (request, 'La fecha debe ser mayor o igual a la actual.')
+            return redirect('Eventos')
+        
+        if int(general) <= 0:
+            messages.warning (request, 'La entrada general debe ser mayor a 0.')
+            return redirect('Eventos')
+        
+        if int(vip) <= 0:
+            messages.warning (request, 'La entrada VIP debe ser mayor a 0.')
+            return redirect('Eventos')
+        
+        if int(aforo) <= 0:
+            messages.warning (request, 'El aforo debe ser mayor a 0.')
+            return redirect('Eventos')
+
+
         try:
             q = Evento.objects.get(pk=id)
             q.nombre = nom
@@ -1112,6 +1246,10 @@ def crearCategoria(request):
             if foto == None:
                 foto = "Img_categorias/default.jpg"
 
+            if Categoria.objects.filter(nombre=nom).exists():
+                messages.warning(request, 'Ya existe una categoria con ese nombre.')
+                return redirect('Menu')
+
             # INSERT INTO Categoria VALUES (nom, desc)
             q = Categoria(
                 nombre = nom, 
@@ -1144,6 +1282,11 @@ def actualizarCategoria(request, id):
         nom = request.POST.get('nombre')
         desc = request.POST.get('descripcion')
         foto_nueva = request.FILES.get('foto_nueva')
+
+        if Categoria.objects.filter(nombre=nom).exclude(pk=id).exists():
+            messages.warning(request, 'Ya existe otra categoria con ese nombre.')
+            return redirect('Menu')
+    
         try:
             q = Categoria.objects.get(pk=id)
             q.nombre = nom
@@ -1233,6 +1376,10 @@ def crearCarpeta(request):
             if foto == None:
                 foto = "Img_carpeta/default.png"
 
+            if Galeria.objects.filter(nombre=nom, fecha=date).exists():
+                messages.warning(request, 'Ya existe una carpeta con ese nombre y fecha.')
+                return redirect('gaInicio')
+
             # INSERT INTO Evento VALUES (nom, date, time, desc, foto)
             q = Galeria(
                 nombre = nom,
@@ -1265,6 +1412,12 @@ def actualizarCarpeta(request, id):
         nom = request.POST.get('nombre')
         date = request.POST.get('fecha')
         foto_nueva = request.FILES.get('foto_nueva')
+
+        if Galeria.objects.filter(nombre=nom, fecha=date).exclude(pk=id).exists():
+            messages.warning(request, 'Ya existe una carpeta con ese nombre y fecha.')
+            return redirect('gaFotos', id=id)
+
+
         try:
             q = Galeria.objects.get(pk=id)
             q.nombre = nom
@@ -1282,7 +1435,7 @@ def actualizarCarpeta(request, id):
     else:
         messages.warning (request, f'Error: No se enviaron datos...')
         
-    return redirect('gaInicio')
+    return redirect('gaFotos', id=id)
 
 
 def gaFotos(request, id):
@@ -1460,6 +1613,10 @@ def comprar_entradas(request, id):
     user = Usuario.objects.get(pk=logueo["id"])
     evento = Evento.objects.get(pk=id)
 
+    if user.rol != 4:
+        messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para comprar entradas'})
+        return JsonResponse({'messages': messages})
+
     if request.method == "POST":    
         data = json.loads(request.body)
         
@@ -1555,6 +1712,10 @@ def reservar_mesa(request, id):
 
     user = Usuario.objects.get(pk=logueo["id"])
     evento = Evento.objects.get(pk=id)
+
+    if user.rol != 4:
+        messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para comprar entradas'})
+        return JsonResponse({'messages': messages})
 
     if request.method == "POST":
         data = json.loads(request.body)
@@ -2008,31 +2169,32 @@ class comprar_entradas_movil(APIView):
                 qr_entradas = EntradasQR.objects.filter(compra=compra.id)
 
                 destinatario = usuario.email
-                mensaje = f"""
-                    <h1 style='color:blue;'>Oasis</h1>
-                    <p>Usted ha comprado <b>{qr_entradas.count()}</b> {'entradas' if qr_entradas.count() > 1 else 'entrada'} para el evento <b>{compra.evento.nombre}</b> en la fecha <b>{compra.evento.fecha}</b></p>
-                    {'<p>Estos son los códigos QR de las entradas:' if qr_entradas.count() > 1 else '<p>Este es el código QR de la entrada:'}
-
-                    <table style='border-collapse: collapse; width: 100%;'>
-                        <thead>
-                            <tr>
-                                <th style='border: 1px solid black; padding: 8px;'>Tipo de Entrada</th>
-                                <th style='border: 1px solid black; padding: 8px;'>Código QR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {''.join(f'''
-                            <tr>
-                                <td style='border: 1px solid black; padding: 8px;'>{e.tipo_entrada}</td>
-                                <td style='border: 1px solid black; padding: 8px;'>
-                                    <img src="{e.qr_imagen.url}" alt="Código QR" width="100">
-                                </td>
-                            </tr>''' for e in qr_entradas)}
-                        </tbody>
-                    </table>
-                """
+                mensaje_html = render_to_string('Oasis/emails/plantillas/entrada_email_template.html', {
+                    'compra': compra,
+                    'entradas': qr_entradas,
+                    'request': request
+                })
                 
-                EmailThread('Compra de entradas en Oasis', mensaje, [destinatario]).start()
+                email = EmailMessage(
+                    subject='Compra de entradas en Oasis Night Club',
+                    body=mensaje_html,
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[destinatario],
+                )
+                email.content_subtype = 'html' 
+
+                # Generar y adjuntar PDFs por cada entrada
+                for entrada in qr_entradas:
+                    pdf = generar_pdf_entrada(request, compra, entrada)
+                    if pdf:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+                            temp_pdf.write(pdf.content)
+                            temp_pdf_path = temp_pdf.name
+                        email.attach_file(temp_pdf_path)
+                        os.remove(temp_pdf_path)
+
+                # Enviar el correo
+                email.send()
 
                 return JsonResponse({'message':'Entradas compradas con éxito'})
             else:
@@ -2140,17 +2302,34 @@ class reservar_mesa_movil(APIView):
                 mesa.estado_reserva = 'Reservada'
                 mesa.save()
 
-                # Enviar correo en un hilo separado
-                destinatario = usuario.email
-                mensaje = f"""
-                    <h1 style='color:blue;'>Oasis</h1>
-                    <p>Usted ha reservado la <b>{reserva.mesa.nombre}</b> para el evento <b>{reserva.evento.nombre}</b> en la fecha <b>{reserva.evento.fecha}</b></p>
-                    <p>Este es su código QR para acceder:</p>
-                    <img src="{reserva.qr_imagen.url}" alt="Código QR"/>
-                """
-                EmailThread('Reserva en Oasis', mensaje, [destinatario]).start()
+                # Generar el PDF
+                pdf = generar_pdf_reserva(request, reserva)
 
-                return JsonResponse({'message':'Reserva hecha con éxito'})
+                if pdf:
+                    destinatario = usuario.email
+                    contexto = {
+                        'reserva': reserva,
+                        'request': request
+                    }
+                    mensaje_html = render_to_string('Oasis/emails/plantillas/reserva_email_template.html', contexto)
+
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+                        temp_pdf.write(pdf.content)
+                        temp_pdf_path = temp_pdf.name
+                    
+                    email = EmailMessage(
+                        subject='Reserva exitosa en Oasis Night Club',
+                        body=mensaje_html,
+                        from_email=settings.EMAIL_HOST_USER,
+                        to=[destinatario],
+                    )
+                    email.attach_file(temp_pdf_path)
+                    email.content_subtype = 'html' 
+                    email.send() 
+
+                    return JsonResponse({'message':'Reserva hecha con éxito'})
+
+                    os.remove(temp_pdf_path)  # Eliminar el archivo temporal
             else:
                 return JsonResponse({'message':'No hay suficientes entradas disponibles'})
 
@@ -2180,7 +2359,8 @@ class reservas_usuario_movil(APIView):
                         'id': evento.id,
                         'nombre': evento.nombre,
                         'fecha': evento.fecha,
-                        'foto': evento.foto.url
+                        'foto': evento.foto.url,
+                        'estado': evento.estado
                     }
                 })
             
@@ -2579,6 +2759,10 @@ def crear_pedido_usuario(request, id):
 
         else:
             messages.error(request, "Inicia sesión ó registrate para realizar el pedido.")
+            return redirect('pedidoUsuario', id=id)
+
+        if user.rol != 4:
+            messages.warning(request, 'Debes de ser un cliente para realizar el pedido.')
             return redirect('pedidoUsuario', id=id)
         
         mesa = Mesa.objects.get(pk=id)

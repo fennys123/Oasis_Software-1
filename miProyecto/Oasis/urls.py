@@ -153,6 +153,7 @@ urlpatterns = [
     path('Detalle_Evento/<int:id>', views.detalleEvento, name='detalleEvento'),
 
     path('Gestion_Eventos_Eliminados/', views.eveEliminados, name='EventosEliminados'),
+    path('Eliminar_Evento_Definitivo/<int:id>', views.eliminarEventoDefinitivo, name='eliminarEventoDefinitivo'),
 
 
 
