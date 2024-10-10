@@ -42,6 +42,7 @@ import os
 import tempfile
 from django.core.files import File
 
+from django.urls import reverse
 
 
 from rest_framework import viewsets
@@ -942,104 +943,59 @@ def crearEvento(request):
         messages.warning (request, f'Error: No se enviaron datos...')
         return redirect('Eventos')
 
+def enviar_correo_cancelacion_evento_reserva(reserva):
+    try:
+        destinatario = reserva.usuario.email
+        contexto = {'reserva': reserva}
+        mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_reserva_email_template.html', contexto)
+        
+        email = EmailMessage(
+            subject='Cancelación de Evento en Oasis Night Club',
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as e:
+        print(f"Error al enviar el correo de reserva: {e}")  # Loguear el error
+
+# Función para enviar correos de cancelación de entradas
+def enviar_correo_cancelacion_evento_entrada(entrada, qr_entradas):
+    try:
+        destinatario = entrada.usuario.email
+        contexto = {'compra': entrada, 'entradas': qr_entradas}
+        mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_entrada_email_template.html', contexto)
+        
+        email = EmailMessage(
+            subject='Cancelación de Evento en Oasis Night Club',
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as e:
+        print(f"Error al enviar el correo de entrada: {e}")  # Loguear el error
+
 def eliminarEvento(request, id):
     try:
         evento = Evento.objects.get(pk=id)
         evento.estado = False
         evento.save()
 
-        if Reserva.objects.filter(evento=evento) and CompraEntrada.objects.filter(evento=evento):  
-            for r in Reserva.objects.filter(evento=evento): 
-                try:
-                    destinatario = r.usuario.email
+        # Procesar las reservas y entradas asociadas al evento
+        reservas = Reserva.objects.filter(evento=evento)
+        entradas = CompraEntrada.objects.filter(evento=evento)
 
-                    contexto = {
-                        'reserva': r,
-                    }
-                    mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_reserva_email_template.html', contexto)
+        # Si hay reservas, enviar correos de cancelación en segundo plano
+        for reserva in reservas:
+            threading.Thread(target=enviar_correo_cancelacion_evento_reserva, args=(reserva,)).start()
 
-                    # Enviar el correo con el PDF adjunto
-                    email = EmailMessage(
-                        subject='Cancelación de Evento en Oasis Night Club',
-                        body=mensaje_html,
-                        from_email=settings.EMAIL_HOST_USER,
-                        to=[destinatario],
-                    )
-                    email.content_subtype = 'html'
-                    email.send()
-                
-                except Exception as e:
-                    messages.error(request, f"Error al enviar el correo: {e}")
-            
-            for e in CompraEntrada.objects.filter(evento=evento):
-                try:
-                    qr_entradas = EntradasQR.objects.filter(compra=e.id)
-
-                    destinatario = e.usuario.email
-                    mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_entrada_email_template.html', {
-                        'compra': e,
-                        'entradas': qr_entradas,
-                    })
-                    
-                    email = EmailMessage(
-                        subject='Cancelación de Evento en Oasis Night Club',
-                        body=mensaje_html,
-                        from_email=settings.EMAIL_HOST_USER,
-                        to=[destinatario],
-                    )
-                    email.content_subtype = 'html' 
-
-                    email.send()
-                except Exception as e:
-                    messages.error(request, f"Error al enviar el correo de entrada: {e}")
-
-
-        elif Reserva.objects.filter(evento=evento) and not CompraEntrada.objects.filter(evento=evento): 
-            for r in Reserva.objects.filter(evento=evento):
-                try:
-                    destinatario = r.usuario.email
-
-                    contexto = {
-                        'reserva': r,
-                    }
-                    mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_reserva_email_template.html', contexto)
-
-                    # Enviar el correo con el PDF adjunto
-                    email = EmailMessage(
-                        subject='Cancelación de Evento en Oasis Night Club',
-                        body=mensaje_html,
-                        from_email=settings.EMAIL_HOST_USER,
-                        to=[destinatario],
-                    )
-                    email.content_subtype = 'html'
-                    email.send()
-                
-                except Exception as e:
-                    messages.error(request, f"Error al enviar el correo: {e}")
-
-        elif CompraEntrada.objects.filter(evento=evento) and not Reserva.objects.filter(evento=evento):
-            for e in CompraEntrada.objects.filter(evento=evento):
-                try:
-                    qr_entradas = EntradasQR.objects.filter(compra=e.id)
-
-                    destinatario = e.usuario.email
-                    mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_evento_entrada_email_template.html', {
-                        'compra': e,
-                        'entradas': qr_entradas,
-                    })
-                    
-                    email = EmailMessage(
-                        subject='Cancelación de Evento en Oasis Night Club',
-                        body=mensaje_html,
-                        from_email=settings.EMAIL_HOST_USER,
-                        to=[destinatario],
-                    )
-                    email.content_subtype = 'html' 
-
-                    email.send()
-                except Exception as e:
-                    messages.error(request, f"Error al enviar el correo: {e}")
-                    
+        # Si hay entradas, enviar correos de cancelación en segundo plano
+        for entrada in entradas:
+            qr_entradas = EntradasQR.objects.filter(compra=entrada)
+            threading.Thread(target=enviar_correo_cancelacion_evento_entrada, args=(entrada, qr_entradas)).start()
 
         messages.success(request, "Evento Eliminado Correctamente!")
 
@@ -1047,6 +1003,7 @@ def eliminarEvento(request, id):
         messages.error(request, f'Error: {e}')
     
     return redirect('Eventos')
+
 
 def eliminarEventoDefinitivo(request, id):
     try:
@@ -1158,15 +1115,40 @@ def eveEntradas(request, id):
 
 
 
+def enviar_correo_cancelacion_entrada(entrada, total_entradas):
+    try:
+        destinatario = entrada.usuario.email
+        contexto = {
+            'compra': entrada,
+            'total_entradas': total_entradas
+        }
+        mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_entrada_email_template.html', contexto)
+
+        subject = "Cancelación de Entrada en Oasis Night Club" if total_entradas == 1 else "Cancelación de Entradas en Oasis Night Club"
+
+        email = EmailMessage(
+            subject=subject,
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.content_subtype = 'html'
+        email.send()
+
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
+
+
 def eliminarEntrada(request, id):
     try:
         entrada = CompraEntrada.objects.get(pk=id)
-        entrada.delete()
+        evento = Evento.objects.get(pk=entrada.evento.id)
+        
         qr_entradas = EntradasQR.objects.filter(compra=entrada)
         qr_entradas.delete()
-        evento = Evento.objects.get(pk=entrada.evento.id)
+        entrada.delete()
+
         evento.entradas_disponibles = F('entradas_disponibles') + entrada.entrada_general + entrada.entrada_vip
-        
         cantidad_entradas_evento = CompraEntrada.objects.filter(evento=evento).count()
 
         if cantidad_entradas_evento == 0:
@@ -1174,38 +1156,13 @@ def eliminarEntrada(request, id):
 
         evento.save()
 
-        try:
-            destinatario = entrada.usuario.email
-            total_entradas = entrada.entrada_general + entrada.entrada_vip
-            contexto = {
-                'compra': entrada,
-                'total_entradas': total_entradas
-            }
-            mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_entrada_email_template.html', contexto)
+        total_entradas = entrada.entrada_general + entrada.entrada_vip
+        threading.Thread(target=enviar_correo_cancelacion_entrada, args=(entrada, total_entradas)).start()
 
-            subject = ""
-            if total_entradas > 1:
-                subject = "Cancelación de Entradas en Oasis Night Club"
-            else:
-                subject = "Cancelación de Entrada en Oasis Night Club"
-
-            # Enviar el correo con el PDF adjunto
-            email = EmailMessage(
-                subject=subject,
-                body=mensaje_html,
-                from_email=settings.EMAIL_HOST_USER,
-                to=[destinatario],
-            )
-            email.content_subtype = 'html'  # Asegurarse de que el correo sea HTML
-            email.send()  # Enviar el correo
-
-            messages.success(request, "Entrada Eliminada Correctamente!")
-
-        except Exception as e:
-            messages.error(request, f"Error al enviar el correo: {e}")
+        messages.success(request, "Entrada eliminada correctamente!")
 
     except Exception as e:
-        messages.error(request, f'Error: {e}')
+        messages.error(request, f"Error: {e}")
     
     return redirect(f'/Evento_Entradas/{evento.id}')
 
@@ -1222,15 +1179,16 @@ def eveReserva(request, id):
 
 def eveReservaLlegada(request, codigo_qr):
     try:
-        reserva = Reserva.objects.get(codigo_qr = codigo_qr)
+        reserva = Reserva.objects.get(codigo_qr=codigo_qr)
         reserva.estado_qr = False
         reserva.save()
 
-        messages.success(request, "Llegada al bar exitosa!")
-        return redirect('eveReserva' + reserva.id)
+        messages.success(request, "¡Llegada al bar exitosa!")
+        return redirect(reverse('eveReserva', args=[reserva.evento.id]))
 
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        return redirect(reverse('eveReserva', args=[reserva.evento.id]))
 
 def eveEliminados(request):
     logueo = request.session.get("logueo", False)
@@ -1615,6 +1573,33 @@ def generar_pdf_entrada(request, compra, entrada):
         return None
     return response
 
+def enviar_correo_entradas(request, compra, qr_entradas, destinatario):
+    mensaje_html = render_to_string('Oasis/emails/plantillas/entrada_email_template.html', {
+        'compra': compra,
+        'entradas': qr_entradas,
+        'request': request
+    })
+    
+    email = EmailMessage(
+        subject='Compra de entradas en Oasis Night Club',
+        body=mensaje_html,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[destinatario],
+    )
+    email.content_subtype = 'html' 
+
+    # Generar y adjuntar PDFs por cada entrada
+    for entrada in qr_entradas:
+        pdf = generar_pdf_entrada(request, compra, entrada)
+        if pdf:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+                temp_pdf.write(pdf.content)
+                temp_pdf_path = temp_pdf.name
+            email.attach_file(temp_pdf_path)
+            os.remove(temp_pdf_path)
+
+    # Enviar el correo
+    email.send()
 
 def comprar_entradas(request, id):
     logueo = request.session.get("logueo", False)
@@ -1671,35 +1656,13 @@ def comprar_entradas(request, id):
                     ) 
 
             qr_entradas = EntradasQR.objects.filter(compra=compra.id)
-
             destinatario = user.email
-            mensaje_html = render_to_string('Oasis/emails/plantillas/entrada_email_template.html', {
-                'compra': compra,
-                'entradas': qr_entradas,
-                'request': request
-            })
-            
-            email = EmailMessage(
-                subject='Compra de entradas en Oasis Night Club',
-                body=mensaje_html,
-                from_email=settings.EMAIL_HOST_USER,
-                to=[destinatario],
-            )
-            email.content_subtype = 'html' 
 
-            # Generar y adjuntar PDFs por cada entrada
-            for entrada in qr_entradas:
-                pdf = generar_pdf_entrada(request, compra, entrada)
-                if pdf:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                        temp_pdf.write(pdf.content)
-                        temp_pdf_path = temp_pdf.name
-                    email.attach_file(temp_pdf_path)
-                    os.remove(temp_pdf_path)
+            # Iniciar el hilo para enviar el correo en segundo plano
+            correo_thread = threading.Thread(target=enviar_correo_entradas, args=(request, compra, qr_entradas, destinatario))
+            correo_thread.start()
 
-            # Enviar el correo
-            email.send()
-
+            # Confirmación inmediata de la compra
             messages.append({'message_type': 'success', 'message': 'Entradas compradas correctamente'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})
@@ -1716,19 +1679,47 @@ def generar_pdf_reserva(request, reserva):
         return HttpResponse('Error al generar PDF')
     return response
 
+def enviar_correo_reserva(user, reserva, request):
+    pdf = generar_pdf_reserva(request, reserva)
+
+    if pdf:
+        destinatario = user.email
+        contexto = {
+            'reserva': reserva,
+            'request': request
+        }
+        mensaje_html = render_to_string('Oasis/emails/plantillas/reserva_email_template.html', contexto)
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+            temp_pdf.write(pdf.content)
+            temp_pdf_path = temp_pdf.name
+
+        email = EmailMessage(
+            subject='Reserva exitosa en Oasis Night Club',
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.attach_file(temp_pdf_path)
+        email.content_subtype = 'html'
+        email.send()
+
+        os.remove(temp_pdf_path)
+
+
 def reservar_mesa(request, id):
     logueo = request.session.get("logueo", False)
     messages = []
 
     if not logueo:
-        messages.append({'message_type': 'warning', 'message': 'Inicia sesión antes de comprar'})
+        messages.append({'message_type': 'warning', 'message': 'Inicia sesión antes de reservar'})
         return JsonResponse({'messages': messages}) 
 
     user = Usuario.objects.get(pk=logueo["id"])
     evento = Evento.objects.get(pk=id)
 
     if user.rol != 4:
-        messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para comprar entradas'})
+        messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para reservar una mesa'})
         return JsonResponse({'messages': messages})
 
     if request.method == "POST":
@@ -1737,7 +1728,6 @@ def reservar_mesa(request, id):
         total = int(data.get("total_general", 0))
 
         if evento.entradas_disponibles >= mesa.capacidad:
-            # Crear la reserva
             reserva = Reserva.objects.create(
                 usuario=user, 
                 evento=evento,  
@@ -1753,43 +1743,35 @@ def reservar_mesa(request, id):
             mesa.estado_reserva = 'Reservada'
             mesa.save()
 
-            # Generar el PDF
-            pdf = generar_pdf_reserva(request, reserva)
+            messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
 
-            if pdf:
-                destinatario = user.email
-                contexto = {
-                    'reserva': reserva,
-                    'request': request
-                }
-                mensaje_html = render_to_string('Oasis/emails/plantillas/reserva_email_template.html', contexto)
+            threading.Thread(target=enviar_correo_reserva, args=(user, reserva, request)).start()
 
-                # Guardar el PDF en un archivo temporal
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                    temp_pdf.write(pdf.content)
-                    temp_pdf_path = temp_pdf.name
-
-                # Enviar el correo con el PDF adjunto
-                email = EmailMessage(
-                    subject='Reserva exitosa en Oasis Night Club',
-                    body=mensaje_html,
-                    from_email=settings.EMAIL_HOST_USER,
-                    to=[destinatario],
-                )
-                email.attach_file(temp_pdf_path)  # Adjuntar el archivo PDF
-                email.content_subtype = 'html'  # Asegurarse de que el correo sea HTML
-                email.send()  # Enviar el correo
-
-                messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
-                
-                # Eliminar el archivo temporal después de enviar
-                os.remove(temp_pdf_path)
-            else:
-                messages.append({'message_type': 'error', 'message': 'Error al generar el PDF.'})
         else:
             messages.append({'message_type': 'error', 'message': 'No hay suficientes entradas disponibles'})
 
     return JsonResponse({'messages': messages})
+
+
+def enviar_correo_cancelacion_reserva(reserva):
+    try:
+        destinatario = reserva.usuario.email
+        contexto = {
+            'reserva': reserva,
+        }
+        mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_reserva_email_template.html', contexto)
+
+        email = EmailMessage(
+            subject='Cancelación de Reserva en Oasis Night Club',
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.content_subtype = 'html'
+        email.send() 
+
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}") 
 
 
 def eliminar_reserva(request, id):
@@ -1797,38 +1779,18 @@ def eliminar_reserva(request, id):
         reserva = Reserva.objects.get(pk=id)
         reserva.evento.entradas_disponibles += reserva.mesa.capacidad
         reserva.delete()
-            
-        cantidad_reservas_evento = Reserva.objects.filter(evento=reserva.evento).count()
 
+        cantidad_reservas_evento = Reserva.objects.filter(evento=reserva.evento).count()
         if cantidad_reservas_evento == 0:
             reserva.evento.reservas = False
-        
-        reserva.evento.save()
 
+        reserva.evento.save()
         reserva.mesa.estado_reserva = "Disponible"
         reserva.mesa.save()
 
-        try:
-            destinatario = reserva.usuario.email
-            contexto = {
-                'reserva': reserva,
-            }
-            mensaje_html = render_to_string('Oasis/emails/plantillas/cancelacion_reserva_email_template.html', contexto)
+        threading.Thread(target=enviar_correo_cancelacion_reserva, args=(reserva,)).start()
 
-            # Enviar el correo con el PDF adjunto
-            email = EmailMessage(
-                subject='Cancelación de Reserva en Oasis Night Club',
-                body=mensaje_html,
-                from_email=settings.EMAIL_HOST_USER,
-                to=[destinatario],
-            )
-            email.content_subtype = 'html'  # Asegurarse de que el correo sea HTML
-            email.send()  # Enviar el correo
-
-            messages.success(request,'Reserva eliminada correctamente')
-
-        except Exception as e:
-            messages.error(request, f"Error al enviar el correo: {e}")
+        messages.success(request, 'Reserva eliminada correctamente')
 
     except Exception as e:
         messages.error(request, f"Error al eliminar la reserva: {e}")
@@ -2180,35 +2142,12 @@ class comprar_entradas_movil(APIView):
                             tipo_entrada="VIP",
                         ) 
 
+
                 qr_entradas = EntradasQR.objects.filter(compra=compra.id)
+                destinatario = user.email
 
-                destinatario = usuario.email
-                mensaje_html = render_to_string('Oasis/emails/plantillas/entrada_email_template.html', {
-                    'compra': compra,
-                    'entradas': qr_entradas,
-                    'request': request
-                })
-                
-                email = EmailMessage(
-                    subject='Compra de entradas en Oasis Night Club',
-                    body=mensaje_html,
-                    from_email=settings.EMAIL_HOST_USER,
-                    to=[destinatario],
-                )
-                email.content_subtype = 'html' 
-
-                # Generar y adjuntar PDFs por cada entrada
-                for entrada in qr_entradas:
-                    pdf = generar_pdf_entrada(request, compra, entrada)
-                    if pdf:
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                            temp_pdf.write(pdf.content)
-                            temp_pdf_path = temp_pdf.name
-                        email.attach_file(temp_pdf_path)
-                        os.remove(temp_pdf_path)
-
-                # Enviar el correo
-                email.send()
+                correo_thread = threading.Thread(target=enviar_correo_entradas, args=(request, compra, qr_entradas, destinatario))
+                correo_thread.start()   
 
                 return JsonResponse({'message':'Entradas compradas con éxito'})
             else:
@@ -2343,34 +2282,9 @@ class reservar_mesa_movil(APIView):
                 mesa.estado_reserva = 'Reservada'
                 mesa.save()
 
-                # Generar el PDF
-                pdf = generar_pdf_reserva(request, reserva)
+                threading.Thread(target=enviar_correo_reserva, args=(user, reserva, request)).start()
+                return JsonResponse({'message':'Reserva hecha con éxito'})
 
-                if pdf:
-                    destinatario = usuario.email
-                    contexto = {
-                        'reserva': reserva,
-                        'request': request
-                    }
-                    mensaje_html = render_to_string('Oasis/emails/plantillas/reserva_email_template.html', contexto)
-
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-                        temp_pdf.write(pdf.content)
-                        temp_pdf_path = temp_pdf.name
-                    
-                    email = EmailMessage(
-                        subject='Reserva exitosa en Oasis Night Club',
-                        body=mensaje_html,
-                        from_email=settings.EMAIL_HOST_USER,
-                        to=[destinatario],
-                    )
-                    email.attach_file(temp_pdf_path)
-                    email.content_subtype = 'html' 
-                    email.send() 
-
-                    return JsonResponse({'message':'Reserva hecha con éxito'})
-
-                    os.remove(temp_pdf_path)  # Eliminar el archivo temporal
             else:
                 return JsonResponse({'message':'No hay suficientes entradas disponibles'})
 
