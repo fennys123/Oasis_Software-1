@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/1.0/comprar_entradas/', views.comprar_entradas_movil.as_view()),
     path('api/1.0/entradas_usuario/<int:id>/', views.entradas_usuario_movil.as_view()),
     path('api/1.0/entradas_detalles_usuario/<int:user_id>/<int:entrada_id>/', views.entradas_detalles_usuario_movil.as_view()),
+    path('api/1.0/mesas_reservadas/<int:id_evento>/', views.mesas_reservadas_movil.as_view()),
     path('api/1.0/reservar_mesa/', views.reservar_mesa_movil.as_view()),
     path('api/1.0/reservas_usuario/<int:id>/', views.reservas_usuario_movil.as_view()),
     path('api/1.0/reservas_detalles_usuario/<int:user_id>/<int:reserva_id>/', views.reservas_detalles_usuario_movil.as_view()),
@@ -147,6 +148,7 @@ urlpatterns = [
     path('Eliminar_Evento/<int:id>', views.eliminarEvento, name='eliminarEvento'),
     path('Actualizar_Evento/<int:id>', views.actualizarEvento, name='actualizarEvento'),
     path('Reservas/<int:id>', views.eveReserva, name='eveReserva'),
+    path('ReservasLLegada/<str:codigo_qr>', views.eveReservaLlegada, name='eveReservaLlegada'),
     path('Evento_Entradas/<int:id>', views.eveEntradas, name='eveEntradas'),
     path('Eliminar_Entrada/<int:id>', views.eliminarEntrada, name='eliminarEntrada'),
 

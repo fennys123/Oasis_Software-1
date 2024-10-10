@@ -1156,6 +1156,8 @@ def eveEntradas(request, id):
     return render(request, 'Oasis/eventos/eveEntradas.html', contexto)
 
 
+
+
 def eliminarEntrada(request, id):
     try:
         entrada = CompraEntrada.objects.get(pk=id)
@@ -1217,6 +1219,18 @@ def eveReserva(request, id):
     contexto = {'user': user, 'reservas': reservas, 'evento': evento, 'url': "Gestion_Eventos"}
 
     return render(request, 'Oasis/eventos/eveReserva.html', contexto)
+
+def eveReservaLlegada(request, codigo_qr):
+    try:
+        reserva = Reserva.objects.get(codigo_qr = codigo_qr)
+        reserva.estado_qr = False
+        reserva.save()
+
+        messages.success(request, "Llegada al bar exitosa!")
+        return redirect('eveReserva' + reserva.id)
+
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
 
 def eveEliminados(request):
     logueo = request.session.get("logueo", False)
@@ -2233,7 +2247,8 @@ class entradas_usuario_movil(APIView):
                         'aforo': evento.aforo,
                         'precio_entrada': evento.precio_entrada,
                         'precio_vip': evento.precio_vip,
-                        'foto': evento.foto.url
+                        'foto': evento.foto.url,
+                        'estado': evento.estado
                     }
                 })
 
@@ -2272,6 +2287,32 @@ class entradas_detalles_usuario_movil(APIView):
 
         except Exception as e:
             return JsonResponse({'error': f'Error: {str(e)}'})
+
+
+class mesas_reservadas_movil(APIView):
+    def get(self, request, id_evento):
+        try:
+            evento = Evento.objects.get(pk=id_evento)
+            reservas = Reserva.objects.filter(evento=evento)
+            mesas = Mesa.objects.all()
+
+            listMesasReservadas = [reserva.mesa.id for reserva in reservas]
+
+            mesas_serializer = MesaSerializer(mesas, many=True, context={'request': request})
+
+            # Marcar las mesas como reservadas
+            mesas_data = []
+            for mesa in mesas_serializer.data:
+                mesa['reservada'] = mesa['id'] in listMesasReservadas
+                mesas_data.append(mesa)
+
+            return Response({
+                'mesas': mesas_data,
+            })
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}'})
+
+                
 
 class reservar_mesa_movil(APIView):
     def post(self, request):
