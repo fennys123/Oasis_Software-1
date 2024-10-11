@@ -498,7 +498,6 @@ def guUsuariosCrear(request):
             cedula = request.POST.get('cedula')
             foto = request.FILES.get('foto')
             rol = int(request.POST.get('rol'))
-            estado = int(request.POST.get('Estado'))
 
             if foto is None:
                 foto = "Img_usuarios/default.png"
@@ -533,7 +532,6 @@ def guUsuariosCrear(request):
                 password=hash_password(password),
                 rol=rol,
                 cedula=cedula,
-                estado=estado,
                 foto=foto,
             )
 
@@ -565,7 +563,6 @@ def guUsuariosActualizar(request, id):
         # password = request.POST.get('password')
         cedula = request.POST.get('cedula')
         rol = request.POST.get('rol')
-        estado = request.POST.get('Estado')
         foto_nueva = request.FILES.get('foto_nueva')
 
         try:
@@ -598,7 +595,6 @@ def guUsuariosActualizar(request, id):
             q.fecha_nacimiento = fecha_nacimiento
             q.rol = rol
             q.cedula = cedula
-            q.estado = estado
             
             if foto_nueva:
                 q.foto = foto_nueva
@@ -1740,6 +1736,10 @@ def comprar_entradas(request, id):
     user = Usuario.objects.get(pk=logueo["id"])
     evento = Evento.objects.get(pk=id)
 
+    if user.estado == 2:
+        messages.append({'message_type': 'warning', 'message': 'Estás bloqueado, no puedes comprar entradas.'})
+        return JsonResponse({'messages': messages})
+
     if user.rol != 4:
         messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para comprar entradas'})
         return JsonResponse({'messages': messages})
@@ -1845,6 +1845,10 @@ def reservar_mesa(request, id):
 
     user = Usuario.objects.get(pk=logueo["id"])
     evento = Evento.objects.get(pk=id)
+
+    if user.estado == 2:
+        messages.append({'message_type': 'warning', 'message': 'Estás bloqueado, no puedes reservar una mesa.'})
+        return JsonResponse({'messages': messages})
 
     if user.rol != 4:
         messages.append({'message_type': 'warning', 'message': 'Debes de ser un cliente para reservar una mesa'})
@@ -2846,6 +2850,10 @@ def crear_pedido_usuario(request, id):
 
         else:
             messages.error(request, "Inicia sesión ó registrate para realizar el pedido.")
+            return redirect('pedidoUsuario', id=id)
+
+        if user.estado == 2:
+            messages.warning(request, 'Estás bloqueado, no puedes realizar pedidos.')
             return redirect('pedidoUsuario', id=id)
 
         if user.rol != 4:
