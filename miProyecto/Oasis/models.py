@@ -37,7 +37,7 @@ class Usuario(AbstractUser):
     )
     estado = models.IntegerField(choices=ESTADO, default=1)
     foto = models.ImageField(upload_to="Img_usuarios/", default="Img_usuarios/default.png", blank=True)
-    codigo_recuperar = models.CharField(max_length=254, default="", blank=True, null=True)
+    token_recuperar = models.CharField(max_length=254, default="", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["nombre", "cedula", "fecha_nacimiento"]

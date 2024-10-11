@@ -184,7 +184,7 @@ def recuperar_contrasena(request):
             from random import randint
             import base64
             codigo = base64.b64encode(str(randint(100000, 999999)).encode("ascii")).decode("ascii")
-            q.codigo_recuperar = codigo
+            q.token_recuperar = codigo
             q.save()
 
             link = "http://127.0.0.1:8000/verificar_recuperar/?correo="+q.email
@@ -217,7 +217,7 @@ def verificar_recuperar(request):
 
             if c1 == c2:
                 q.password = hash_password(c1)
-                q.codigo_recuperar = ""
+                q.token_recuperar = ""
                 q.save()
 
                 messages.success(request, "Contraseña guardada correctamente.")
@@ -235,7 +235,7 @@ def verificar_recuperar(request):
             correo = request.POST.get("correo")
             codigo = request.POST.get("codigo")
             q = Usuario.objects.get(email=correo)
-            if (q.codigo_recuperar == codigo) and q.codigo_recuperar != "":
+            if (q.token_recuperar == codigo) and q.token_recuperar != "":
                 contexto = {"check": "ok", "correo":correo, 'user': user}
                 return render(request, "Oasis/recuperar_contrasena/verificar_recuperar.html", contexto)
             else:
