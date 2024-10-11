@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.urls import reverse
+from urllib.parse import urlencode
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -146,6 +147,118 @@ def inicio(request):
             messages.error(request, "El usuario no existe")
     else:
         return redirect("index")
+    
+
+def recuperar_contrasena_template(request):
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk=logueo["id"])
+
+    contexto = {'user': user}
+    return render(request, 'Oasis/recuperar_contrasena/recuperar_contrasena.html', contexto)
+
+
+def enviar_correo_recuperar(usuario, codigo, link):
+    try:
+        destinatario = usuario.email
+        contexto = {'usuario': usuario, 'codigo': codigo, 'link': link}
+        mensaje_html = render_to_string('Oasis/emails/plantillas/recuperar_contrasena_template.html', contexto)
+        
+        email = EmailMessage(
+            subject='Recuperar Contraseña en Oasis Night Club',
+            body=mensaje_html,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[destinatario],
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as e:
+        print(f"Error al enviar el correo de reserva: {e}")
+
+def recuperar_contrasena(request):
+    if request.method == "POST":
+        correo = request.POST.get("email")
+        try:
+            q = Usuario.objects.get(email=correo)
+            from random import randint
+            import base64
+            codigo = base64.b64encode(str(randint(100000, 999999)).encode("ascii")).decode("ascii")
+            q.codigo_recuperar = codigo
+            q.save()
+
+            link = "http://127.0.0.1:8000/verificar_recuperar/?correo="+q.email
+
+            threading.Thread(target=enviar_correo_recuperar, args=(q,codigo,link)).start()
+
+            messages.success(request, "El correo para recuperar contraseña ¡ya fué enviado!")
+
+        except Usuario.DoesNotExist:
+            messages.error(request, "No existe el usuario....")
+        
+        return redirect("form_recuperar_contrasena")
+    else:
+        return redirect("form_recuperar_contrasena")
+
+
+def verificar_recuperar(request):
+    logueo = request.session.get("logueo", False)
+    user = None
+    if logueo:
+        user = Usuario.objects.get(pk=logueo["id"])
+
+    if request.method == "POST":
+        if request.POST.get("check"):
+            correo = request.POST.get("correo")
+            q = Usuario.objects.get(email=correo)
+
+            c1 = request.POST.get("nueva1")
+            c2 = request.POST.get("nueva2")
+
+            if c1 == c2:
+                q.password = hash_password(c1)
+                q.codigo_recuperar = ""
+                q.save()
+
+                messages.success(request, "Contraseña guardada correctamente.")
+                return redirect("index")
+            
+            else:
+                messages.warning(request, "Las contraseñas nuevas no coinciden.")
+
+                url = reverse("verificar_recuperar")
+                query_params = urlencode({"correo": correo})
+                full_url = f"{url}?{query_params}"
+                
+                return redirect(full_url)
+        else:
+            correo = request.POST.get("correo")
+            codigo = request.POST.get("codigo")
+            q = Usuario.objects.get(email=correo)
+            if (q.codigo_recuperar == codigo) and q.codigo_recuperar != "":
+                contexto = {"check": "ok", "correo":correo, 'user': user}
+                return render(request, "Oasis/recuperar_contrasena/verificar_recuperar.html", contexto)
+            else:
+                messages.error(request, "Código incorrecto")
+                
+                url = reverse("verificar_recuperar")
+                query_params = urlencode({"correo": correo})
+                full_url = f"{url}?{query_params}"
+                
+                return redirect(full_url)
+    else:
+        correo = request.GET.get("correo")
+        contexto = {"correo":correo, 'user': user}
+        return render(request, "Oasis/recuperar_contrasena/verificar_recuperar.html", contexto)
+
+
+
+
+
+
+
+
+
 
 def registro(request):
     logueo = request.session.get("logueo", False)
@@ -853,6 +966,20 @@ def mesaActualizar(request, id):
 def eliminarMesa(request, id):
     try:
         q = Mesa.objects.get(pk = id)
+
+        if q.estado == "Activa":
+            messages.error(request, 'No puedes eliminar una mesa que tiene pedidos activos.')
+            return redirect('Mesas')
+        
+        if q.estado_reserva == "Reservada":
+            messages.error(request, 'No puedes eliminar una mesa que tiene reservas hechas.')
+            return redirect('Mesas')
+
+        if HistorialPedido.objects.filter(mesa=q).exists():
+            messages.error(request, 'No puedes eliminar una mesa que tiene historial de pedidos hechos, primero elimina el historial.')
+            return redirect('Mesas')
+
+        
         q.delete()
         messages.success(request, "Mesa Eliminada Correctamente!")
     except Exception as e:
@@ -1189,6 +1316,7 @@ def eveReservaLlegada(request, codigo_qr):
     except Exception as e:
         messages.error(request, f'Error: {e}')
         return redirect(reverse('eveReserva', args=[reserva.evento.id]))
+
 
 def eveEliminados(request):
     logueo = request.session.get("logueo", False)
@@ -1785,7 +1913,11 @@ def eliminar_reserva(request, id):
             reserva.evento.reservas = False
 
         reserva.evento.save()
-        reserva.mesa.estado_reserva = "Disponible"
+
+        mesa = Mesa.objects.get(pk=reserva.mesa.id)
+        if not Reserva.objects.filter(mesa=mesa).exists():
+            reserva.mesa.estado_reserva = "Disponible"
+
         reserva.mesa.save()
 
         threading.Thread(target=enviar_correo_cancelacion_reserva, args=(reserva,)).start()
@@ -2144,7 +2276,7 @@ class comprar_entradas_movil(APIView):
 
 
                 qr_entradas = EntradasQR.objects.filter(compra=compra.id)
-                destinatario = user.email
+                destinatario = usuario.email
 
                 correo_thread = threading.Thread(target=enviar_correo_entradas, args=(request, compra, qr_entradas, destinatario))
                 correo_thread.start()   
@@ -2282,7 +2414,7 @@ class reservar_mesa_movil(APIView):
                 mesa.estado_reserva = 'Reservada'
                 mesa.save()
 
-                threading.Thread(target=enviar_correo_reserva, args=(user, reserva, request)).start()
+                threading.Thread(target=enviar_correo_reserva, args=(usuario, reserva, request)).start()
                 return JsonResponse({'message':'Reserva hecha con éxito'})
 
             else:
@@ -2922,7 +3054,7 @@ def ver_mesas_a_cargo(request):
         mesas = Mesa.objects.filter(usuario=user)
 
         contexto = {
-            'user':user, 'mesas':mesas
+            'user':user, 'mesas':mesas, 'url': 'ver_mesas_a_cargo'
         }
         return render(request, "Oasis/usuario/mesas_a_cargo.html", contexto)
     

@@ -37,7 +37,7 @@ class Usuario(AbstractUser):
     )
     estado = models.IntegerField(choices=ESTADO, default=1)
     foto = models.ImageField(upload_to="Img_usuarios/", default="Img_usuarios/default.png", blank=True)
-    token_recuperar = models.CharField(max_length=254, default="", blank=True, null=True)
+    codigo_recuperar = models.CharField(max_length=254, default="", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["nombre", "cedula", "fecha_nacimiento"]
@@ -158,6 +158,7 @@ class Mesa(models.Model):
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default=DISPONIBLE)
     estado_reserva = models.CharField(max_length=10, choices=RESERVA_CHOICES , default=DISPONIBLE)
     codigo_qr = models.CharField(max_length=100, unique=True)
+    qr_imagen = models.ImageField(upload_to='mesas_qr_codes/', blank=True, null=True)
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE, null=True, blank=True, default=None)
     
     def __str__(self):
@@ -166,6 +167,19 @@ class Mesa(models.Model):
     def save(self, *args, **kwargs):
         if not self.codigo_qr:
             self.codigo_qr = str(uuid.uuid4())
+        
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+        qr.add_data(self.codigo_qr)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill='black', back_color='white')
+
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        file_name = f'qr_{self.codigo_qr}.png'
+        self.qr_imagen.save(file_name, File(buffer), save=False)
+
+        
         super().save(*args, **kwargs)
 
 class Reserva(models.Model):

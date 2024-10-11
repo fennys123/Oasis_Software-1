@@ -63,6 +63,9 @@ urlpatterns = [
 	path('logout/', views.logout, name="logout"),
 
 
+    path('form_recuperar_contrasena/', views.recuperar_contrasena_template, name='form_recuperar_contrasena'),
+    path('recuperar_contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
+    path('verificar_recuperar/', views.verificar_recuperar, name='verificar_recuperar'),
     path('registro/', views.registro, name='registro'),
 
     #TÉRMINOS Y CONDICIONES

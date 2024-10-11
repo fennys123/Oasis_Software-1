@@ -106,7 +106,7 @@
               {% endif %}
             </ul>
             <ul class="items-barra logout">
-              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'reservas' or url == 'reservas_info' or url == 'entradas' or url == 'entradas_info' %} class="active" {% endif %}>
+              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'ver_mesas_a_cargo' %} class="active" {% endif %}>
                 <span class="icon"><i class="fas fa-user-circle"></i></span>
                 <span class="title">Mi perfil</span>
               </a></li>
@@ -144,8 +144,8 @@
     <script>
 
         $(document).ready(function () {
-            if ($.fn.dataTable.isDataTable('#table')) {
-            $('#table').DataTable().clear().destroy();
+            if ($.fn.dataTable.isDataTable('#dataTable')) {
+            $('#dataTable').DataTable().clear().destroy();
             }
 
             var table = $('#table').DataTable({
