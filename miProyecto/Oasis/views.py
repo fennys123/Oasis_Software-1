@@ -834,7 +834,7 @@ def peInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
 
-    pedidos = Pedido.objects.all().order_by('-fecha')
+    pedidos = Pedido.objects.all().order_by('fecha')
 
     detalles_pedidos = []
     for pedido in pedidos:

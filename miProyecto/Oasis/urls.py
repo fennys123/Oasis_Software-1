@@ -151,7 +151,7 @@ urlpatterns = [
     path('Eliminar_Evento/<int:id>', views.eliminarEvento, name='eliminarEvento'),
     path('Actualizar_Evento/<int:id>', views.actualizarEvento, name='actualizarEvento'),
     path('Reservas/<int:id>', views.eveReserva, name='eveReserva'),
-    path('ReservasLLegada/<str:codigo_qr>/<int:id>', views.eveReservaLlegada, name='eveReservaLlegada'),
+    path('ReservasLLegada/<str:codigo_qr>', views.eveReservaLlegada, name='eveReservaLlegada'),
     path('Evento_Entradas/<int:id>', views.eveEntradas, name='eveEntradas'),
     path('Eliminar_Entrada/<int:id>', views.eliminarEntrada, name='eliminarEntrada'),
 
