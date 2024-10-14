@@ -9,6 +9,13 @@ from django.urls import reverse
 from urllib.parse import urlencode
 from django.core.exceptions import ObjectDoesNotExist
 
+from django.db.models import Q
+
+#Para sacar totales de eventos.
+from django.db.models import Sum
+from django.shortcuts import render
+import locale
+
 
 
 from django.db.models import F
@@ -1277,6 +1284,8 @@ def eliminarEntrada(request, id):
         if cantidad_entradas_evento == 0:
             evento.entradas = False
 
+        evento.ganancia_entradas -= entrada.total
+        evento.ganancia_total -= entrada.total
         evento.save()
 
         total_entradas = entrada.entrada_general + entrada.entrada_vip
@@ -1759,7 +1768,7 @@ def comprar_entradas(request, id):
                 evento=evento,
                 entrada_general=cantidad_general,
                 entrada_vip=cantidad_vip,
-                total=total
+                total=total,
             )
 
             evento.entradas_disponibles -= cantidad_general + cantidad_vip
@@ -1767,6 +1776,8 @@ def comprar_entradas(request, id):
             if not evento.entradas:
                 evento.entradas = True
 
+            evento.ganancia_entradas += total
+            evento.ganancia_total += total
             evento.save()
 
             if cantidad_general > 0:
@@ -1870,7 +1881,9 @@ def reservar_mesa(request, id):
 
             if not evento.reservas:
                 evento.reservas = True
-
+                
+            evento.ganancia_reservas += total
+            evento.ganancia_total += total
             evento.save()
             mesa.estado_reserva = 'Reservada'
             mesa.save()
@@ -1915,7 +1928,9 @@ def eliminar_reserva(request, id):
         cantidad_reservas_evento = Reserva.objects.filter(evento=reserva.evento).count()
         if cantidad_reservas_evento == 0:
             reserva.evento.reservas = False
-
+            
+        reserva.evento.ganancia_reservas -= reserva.total
+        reserva.evento.ganancia_total -= reserva.total
         reserva.evento.save()
 
         mesa = Mesa.objects.get(pk=reserva.mesa.id)
@@ -2262,6 +2277,8 @@ class comprar_entradas_movil(APIView):
                 if not evento.entradas:
                     evento.entradas = True
 
+                evento.ganancia_entradas += total
+                evento.ganancia_total += total
                 evento.save()
 
                 if cantidad_general > 0:
@@ -2414,6 +2431,8 @@ class reservar_mesa_movil(APIView):
                 if not evento.reservas:
                     evento.reservas = True
 
+                evento.ganancia_reservas += total
+                evento.ganancia_total += total
                 evento.save()
                 mesa.estado_reserva = 'Reservada'
                 mesa.save()
@@ -3306,6 +3325,41 @@ def ver_detalles_usuario(request):
     return render(request, ruta, contexto)
 
 
+def ganancia_total(request):   
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk = logueo["id"])
+    
+    eventos = Evento.objects.filter(Q(reservas=True) | Q(entradas=True))
+
+    context = {
+        'user':user,
+        'eventos': eventos    
+    }
+    
+    return render(request, 'Oasis/reportes/reportes_eventos.html', context)
+
+
+def descargar_pdf_ganancias(request, id):
+    evento = Evento.objects.get(id=id)
+    
+    # Establecer el locale en español
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+    # Obtener la fecha actual en el formato "1 de febrero de 2023"
+    fecha_actual = datetime.now().strftime('%d de %B de %Y')
+    
+    html_string = render_to_string('Oasis/pdf/ganancia_evento_pdf_template.html', {'evento': evento, 'request': request, 'fecha_actual':fecha_actual})
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="ganancias_{evento.nombre}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html_string, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF', status=500)
+    
+    return response
+
 # -------------------------------------------------------------------------------------------
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -3360,9 +3414,6 @@ class PedidoMesaViewSet(viewsets.ModelViewSet):
     queryset = DetallePedido.objects.all()
     serializer_class = DetallePedidoSerializer
 
-"""class InventarioViewSet(viewsets.ModelViewSet):
-    queryset = Inventario.objects.all()
-    serializer_class = InventarioSerializer """
 
 class GaleriaViewSet(viewsets.ModelViewSet):
     queryset = Galeria.objects.all()

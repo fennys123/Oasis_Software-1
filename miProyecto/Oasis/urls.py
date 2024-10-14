@@ -240,5 +240,9 @@ urlpatterns = [
 #RESERVAR MESAS
     path("reservar_mesa/<int:id>/", views.reservar_mesa, name="reservar_mesa"),
     path("eliminar_reserva/<int:id>/", views.eliminar_reserva, name="eliminar_reserva"),
-
-]   
+    
+    
+#MOSTRAR TOTAL DE GANANCIAS
+    path("ganancia_total/", views.ganancia_total, name="ganancia_total"),
+    path('descargar_pdf_ganancias/<int:id>/', views.descargar_pdf_ganancias, name='descargar_pdf_ganancias')
+    ]   
