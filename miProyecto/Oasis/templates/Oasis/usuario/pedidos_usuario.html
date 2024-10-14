@@ -53,6 +53,14 @@
           <span class="name">Mesas a cargo</span>
           </a>
       </label>
+      {% if user.rol == 1 %}
+            <label class="radio">
+                <a href="{% url 'ganancia_total' %}">
+                <input type="radio" name="radio" />
+                <span class="name">Ganancias Eventos</span>
+                </a>
+            </label>
+        {% endif %}
     {% endif %}
   </div>
 
