@@ -28,7 +28,7 @@
         </a>
     </label>
         <label class="radio">
-            <a href="{% url 'ganancia_total' %}">
+            <a href="{% url 'ganancias_eventos' %}">
             <input type="radio" name="radio" checked=""/>
             <span class="name">Ganancias Eventos</span>
             </a>
@@ -123,7 +123,7 @@
                             {% if e.entradas %}
                                 <a href="{% url 'eveEntradas' e.id %}" type="button" class="btn btn-primary">Ver entradas</a>
                             {% endif %}
-                            <button type="button" class="btn btn-success" onclick="descargarPDF({{ e.id }})"><i class="bi bi-printer"></i></button>
+                            <button type="button" class="btn btn-success" onclick="descargarPDFGananciaEvento({{ e.id }})"><i class="bi bi-printer"></i></button>
                         </div>
                     </div>
                 </div>
@@ -131,10 +131,12 @@
             </div>
         </div>
     {% endfor %}
+{% endblock %}
 
+{% block js %}
     <script>
-        function descargarPDF(eventoId) {
-            const url = `/descargar_pdf_ganancias/${eventoId}/`;
+        function descargarPDFGananciaEvento(eventoId) {
+            const url = `/descargar_pdf_ganancias_evento/${eventoId}/`;
             window.location.href = url;
         }
     </script>

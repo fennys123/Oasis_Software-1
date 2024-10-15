@@ -352,6 +352,19 @@ def editar_perfil(request, id):
         cedula = request.POST.get('cedula')
         foto_nueva = request.FILES.get('foto_nueva')
 
+        if Usuario.objects.filter(email=email).exclude(pk=id).exists():
+            messages.warning(request, "Ya existe otro usuario con ese correo.")
+            return redirect("ver_perfil")
+
+        if Usuario.objects.filter(cedula=cedula).exclude(pk=id).exists():
+            messages.warning(request, "Ya existe otro usuario con esa cedula.")
+            return redirect("ver_perfil")
+
+        edad = calcular_edad(fecha_nacimiento)
+        if edad < 18:
+            messages.warning(request, "Debes ser mayor de 18 años.")
+            return redirect("ver_perfil")
+
         try:
             q = Usuario.objects.get(pk = id)
             q.nombre = nombre
@@ -774,6 +787,11 @@ def crearProducto(request):
 def eliminarProducto(request, id):
     try:
         q = Producto.objects.get(pk = id)
+
+        if DetallePedido.objects.filter(producto = q).exists():
+            messages.warning(request, "No se puede eliminar el producto porque tiene pedidos")
+            return redirect('Productos')
+
         q.delete()
         messages.success(request, "Producto Eliminado Correctamente!")
     except Exception as e:
@@ -1432,6 +1450,18 @@ def meCrearProducto(request, id):
             foto = request.FILES.get('foto')
 
             cat = Categoria.objects.get(pk=id)
+
+            if int(pre) <= 0:
+                messages.warning(request, "El precio debe ser mayor a 0")
+                return redirect("meProductos", id)
+            
+            if inventario <= 0:
+                messages.warning(request, "El inventario debe ser mayor a 0")
+                return redirect("meProductos", id)
+
+            if Producto.objects.filter(nombre=nom).exists():
+                messages.warning(request, "Ya existe un producto con ese nombre")
+                return redirect("meProductos", id)
             
             if foto == None:
                 foto = "Img_productos/default.png"
@@ -3073,6 +3103,36 @@ def ver_historial_pedidos(request):
     return render(request, "Oasis/pedidos/peHistorial.html", contexto)
 
 
+def descargar_pdf_pedido(request, id):
+    try:
+        historial_pedido = HistorialPedido.objects.get(pk=id)
+        historial_detalles_pedido = HistorialDetallePedido.objects.filter(historial_pedido=historial_pedido)
+
+        locale.setlocale(locale.LC_TIME, 'es_CO.utf8')
+        fecha_actual = datetime.now().strftime('%d de %B de %Y')
+
+        html_string = render_to_string('Oasis/pdf/factura_pedido_pdf_template.html', {
+            'historial_pedido': historial_pedido,
+            'historial_detalles_pedido': historial_detalles_pedido,
+            'request': request,
+            'fecha_actual': fecha_actual
+        })
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="factura_pedido_{historial_pedido.id}.pdf"'
+
+        pisa_status = pisa.CreatePDF(html_string, dest=response)
+
+        if pisa_status.err:
+            return HttpResponse('Error al generar el PDF', status=500)
+
+        return response
+
+    except Exception as e:
+        messages.error(request, f"Ocurrió un error: {e}")
+        return HttpResponse(f"Error: {e}", status=500)
+
+
 def ver_mesas_a_cargo(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -3325,7 +3385,7 @@ def ver_detalles_usuario(request):
     return render(request, ruta, contexto)
 
 
-def ganancia_total(request):   
+def ganancias_eventos(request):   
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
     
@@ -3333,19 +3393,20 @@ def ganancia_total(request):
 
     context = {
         'user':user,
-        'eventos': eventos    
+        'eventos': eventos,
+        'url': 'ganancias_eventos'
     }
     
     return render(request, 'Oasis/reportes/reportes_eventos.html', context)
 
 
-def descargar_pdf_ganancias(request, id):
+def descargar_pdf_ganancias_evento(request, id):
     evento = Evento.objects.get(id=id)
     
     # Establecer el locale en español
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, 'es_CO.utf8')
 
-    # Obtener la fecha actual en el formato "1 de febrero de 2023"
+    # Obtener la fecha actual en el formato "1 de febrero de 2023"f
     fecha_actual = datetime.now().strftime('%d de %B de %Y')
     
     html_string = render_to_string('Oasis/pdf/ganancia_evento_pdf_template.html', {'evento': evento, 'request': request, 'fecha_actual':fecha_actual})

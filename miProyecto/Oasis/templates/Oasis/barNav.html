@@ -106,7 +106,7 @@
               {% endif %}
             </ul>
             <ul class="items-barra logout">
-              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'ver_mesas_a_cargo' %} class="active" {% endif %}>
+              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'ver_mesas_a_cargo' or url == 'ganancias_eventos' %} class="active" {% endif %}>
                 <span class="icon"><i class="fas fa-user-circle"></i></span>
                 <span class="title">Mi perfil</span>
               </a></li>
@@ -212,7 +212,7 @@
                 }
             });
         </script>
-        
+        {% block js %}{% endblock %}
 </body>
 
 </html>

@@ -124,6 +124,7 @@ urlpatterns = [
     #PEDIDOS
     path('Gestion_Pedidos/', views.peInicio, name='peInicio'),
     path('Historial_Pedidos/', views.ver_historial_pedidos, name='peHistorial'),
+    path('descargar_pdf_pedido/<int:id>/', views.descargar_pdf_pedido, name='descargar_pdf_pedido'),
     path('Mesas/', views.peGestionMesas, name='peGestionMesas'),
     path('Agregar_Pedido/<int:id>', views.pedidoEmpleado, name='pedidoEmpleado'),
 	path("crear_pedido/<int:id>", views.crear_pedido_admin, name="crear_pedido_admin"),
@@ -231,7 +232,7 @@ urlpatterns = [
 
 #VENTAS
 	path("crear_venta/", views.crear_venta, name="crear_venta"),
-	path("historial_pedidos/", views.ver_pedidos_usuario, name="ver_ventas"),
+	path("historial_pedidos_usuario/", views.ver_pedidos_usuario, name="ver_ventas"),
 	path("ver_detalles_pedido_usuario/", views.ver_detalles_usuario, name="ver_detalles_pedido_usuario"),
 
 #COMPRAR ENTRADAS
@@ -243,6 +244,6 @@ urlpatterns = [
     
     
 #MOSTRAR TOTAL DE GANANCIAS
-    path("ganancia_total/", views.ganancia_total, name="ganancia_total"),
-    path('descargar_pdf_ganancias/<int:id>/', views.descargar_pdf_ganancias, name='descargar_pdf_ganancias')
-    ]   
+    path("ganancias_eventos/", views.ganancias_eventos, name="ganancias_eventos"),
+    path('descargar_pdf_ganancias_evento/<int:id>/', views.descargar_pdf_ganancias_evento, name='descargar_pdf_ganancias_evento')
+]   

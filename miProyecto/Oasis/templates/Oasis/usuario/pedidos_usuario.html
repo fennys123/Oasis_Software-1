@@ -55,7 +55,7 @@
       </label>
       {% if user.rol == 1 %}
             <label class="radio">
-                <a href="{% url 'ganancia_total' %}">
+                <a href="{% url 'ganancias_eventos' %}">
                 <input type="radio" name="radio" />
                 <span class="name">Ganancias Eventos</span>
                 </a>
@@ -108,7 +108,7 @@
 
 
 
-    {% for detalle_pedido in detalles_pedidos %}
+  {% for detalle_pedido in detalles_pedidos %}
     <div class="modal fade invoice-modal" id="detalleModal{{ detalle_pedido.pedido.id }}" tabindex="-1" role="dialog" aria-labelledby="detalleModalLabel{{ detalle_pedido.pedido.id }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -121,7 +121,7 @@
                 <div class="modal-body mb-2">
                     <div class="logoFactura">
                       <img src="{% static 'Oasis/img/logoOasisNegro.png' %}" alt="logoOasisNegro" width="150px">
-                      <button type="button" class="btn btn-primary"><i class="bi bi-printer"></i></button>
+                      <button type="button" class="btn btn-primary" onclick="descargarPDFPedido({{ detalle_pedido.pedido.id }})"><i class="bi bi-printer"></i></button>
                     </div>
                     <p class="datosFactura">ID: {{ detalle_pedido.pedido.id }}</p>
                     <p class="datosFactura">{{ detalle_pedido.pedido.mesa.nombre }}</p>
@@ -142,7 +142,6 @@
                               <td data-label="Producto">{{ detalle.producto }}</td>
                               <td data-label="Subtotal" style="text-align: end">${{ detalle.subtotal|intcomma }}</td>
                             </tr>
-                            <tr>
                           {% endfor %}
                         </tbody>
                       </table>
@@ -158,5 +157,14 @@
             </div>
         </div>
     </div>
-{% endfor %}
+  {% endfor %}
+{% endblock %}
+
+{% block js %}
+<script>
+  function descargarPDFPedido(pedidoId) {
+    const url = `/descargar_pdf_pedido/${pedidoId}/`;
+    window.location.href = url;
+  }
+</script>
 {% endblock %}

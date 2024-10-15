@@ -68,7 +68,7 @@
                                     <div class="modal-body mb-2">
                                         <div class="logoFactura">
                                         <img src="{% static 'Oasis/img/logoOasisNegro.png' %}" alt="logoOasisNegro" width="150px">
-                                        <button type="button" class="btn btn-primary"><i class="bi bi-printer"></i></button>
+                                        <button type="button" class="btn btn-primary" onclick="descargarPDFPedido({{ detalle_pedido.pedido.id }})"><i class="bi bi-printer"></i></button>
                                         </div>
                                         <p class="datosFactura">ID: {{ detalle_pedido.pedido.id }}</p>
                                         <p class="datosFactura">{{ detalle_pedido.pedido.mesa.nombre }}</p>
@@ -122,6 +122,13 @@
     </div>
     <!-- Historial de pedidos End -->
 
-    
+{% endblock %}
 
+{% block js %}
+<script>
+  function descargarPDFPedido(pedidoId) {
+    const url = `/descargar_pdf_pedido/${pedidoId}/`;
+    window.location.href = url;
+  }
+</script>
 {% endblock %}
