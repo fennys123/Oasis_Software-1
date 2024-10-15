@@ -21,7 +21,8 @@ import locale
 from django.db.models import F
 from collections import defaultdict
 
-
+from django.utils import timezone
+from datetime import timedelta
 
 # Para tomar el from desde el settings
 from django.conf import settings
@@ -924,6 +925,8 @@ def peGestionMesas(request):
     contexto = {'user':user, 'mesas':mesas, 'mesas_activas': mesas_activas, 'mesas_disponibles':mesas_disponibles, 'url': "Mesas"}
     return render (request, "Oasis/pedidos/peGestionMesas.html", contexto)
 
+
+@rol_requerido([3, 1])
 def pedidoEmpleado(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
@@ -943,8 +946,10 @@ def pedidoEmpleado(request, id):
     contexto = {'user': user, 'productos': productos, 'mesa': mesa, 'carrito': carrito, 'categorias': categorias, 'cat': cat, 'url': "Agregar_Pedido"}
     return render(request, "Oasis/pedidos/pedidoEmpleado.html", contexto)
 
-#MESAS
 
+
+#MESAS
+@rol_requerido([1])
 def mesaInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -952,6 +957,8 @@ def mesaInicio(request):
     contexto = {'data' : q , 'user':user, 'url': "Gestion_Mesas"}
     return render(request, "Oasis/mesas/mesasInicio.html", contexto)
 
+
+@rol_requerido([1])
 def crearMesa(request):
     if request.method == "POST":
         try:
@@ -984,6 +991,10 @@ def crearMesa(request):
         messages.warning (request, f'Error: No se enviaron datos...')
         return redirect('Mesas')
 
+
+
+
+@rol_requerido([1])
 def mesaActualizar(request, id):
     if request.method == "POST":
         nom = request.POST.get('nombre')
@@ -1015,6 +1026,9 @@ def mesaActualizar(request, id):
         
     return redirect('Mesas')
 
+
+
+@rol_requerido([1])
 def eliminarMesa(request, id):
     try:
         q = Mesa.objects.get(pk = id)
@@ -1040,6 +1054,8 @@ def eliminarMesa(request, id):
     return redirect('Mesas')
 
 
+
+@rol_requerido([1])
 def reservasMesa(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1055,6 +1071,7 @@ def reservasMesa(request, id):
 
 #EVENTOS
 
+@rol_requerido([1])
 def eveInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1064,6 +1081,7 @@ def eveInicio(request):
     return render(request, "Oasis/eventos/eveInicio.html", contexto)
 
 
+@rol_requerido([1])
 def crearEvento(request):
     if request.method == "POST":
         try:
@@ -1122,6 +1140,8 @@ def crearEvento(request):
         messages.warning (request, f'Error: No se enviaron datos...')
         return redirect('Eventos')
 
+
+@rol_requerido([1])
 def enviar_correo_cancelacion_evento_reserva(reserva):
     try:
         destinatario = reserva.usuario.email
@@ -1139,7 +1159,10 @@ def enviar_correo_cancelacion_evento_reserva(reserva):
     except Exception as e:
         print(f"Error al enviar el correo de reserva: {e}")  # Loguear el error
 
+
+
 # Función para enviar correos de cancelación de entradas
+@rol_requerido([1])
 def enviar_correo_cancelacion_evento_entrada(entrada, qr_entradas):
     try:
         destinatario = entrada.usuario.email
@@ -1157,6 +1180,8 @@ def enviar_correo_cancelacion_evento_entrada(entrada, qr_entradas):
     except Exception as e:
         print(f"Error al enviar el correo de entrada: {e}")  # Loguear el error
 
+
+@rol_requerido([1])
 def eliminarEvento(request, id):
     try:
         evento = Evento.objects.get(pk=id)
@@ -1184,6 +1209,7 @@ def eliminarEvento(request, id):
     return redirect('Eventos')
 
 
+@rol_requerido([1])
 def eliminarEventoDefinitivo(request, id):
     try:
         evento = Evento.objects.get(pk=id)
@@ -1205,6 +1231,8 @@ def eliminarEventoDefinitivo(request, id):
         return redirect('EventosEliminados')
 
 
+
+@rol_requerido([1])
 def actualizarEvento(request, id):
     if request.method == "POST":
         nom = request.POST.get('nombre')
@@ -1264,6 +1292,8 @@ def actualizarEvento(request, id):
     return redirect('Eventos')
 
 
+
+@rol_requerido([1])
 def detalleEvento(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1271,6 +1301,9 @@ def detalleEvento(request, id):
     contexto = {'evento': evento, 'user':user, 'url': "Gestion_Eventos"}
     return render(request, 'Oasis/eventos/eveDetalleEvento.html', contexto)
 
+
+
+@rol_requerido([1])
 def eveEntradas(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1293,7 +1326,7 @@ def eveEntradas(request, id):
 
 
 
-
+@rol_requerido([1])
 def enviar_correo_cancelacion_entrada(entrada, total_entradas):
     try:
         destinatario = entrada.usuario.email
@@ -1318,6 +1351,7 @@ def enviar_correo_cancelacion_entrada(entrada, total_entradas):
         print(f"Error al enviar el correo: {e}")
 
 
+@rol_requerido([1])
 def eliminarEntrada(request, id):
     try:
         entrada = CompraEntrada.objects.get(pk=id)
@@ -1348,6 +1382,7 @@ def eliminarEntrada(request, id):
     return redirect(f'/Evento_Entradas/{evento.id}')
 
 
+@rol_requerido([1])
 def eveReserva(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
@@ -1358,6 +1393,8 @@ def eveReserva(request, id):
 
     return render(request, 'Oasis/eventos/eveReserva.html', contexto)
 
+
+@rol_requerido([1])
 def eveReservaLlegada(request, codigo_qr):
     try:
         reserva = Reserva.objects.get(codigo_qr=codigo_qr)
@@ -1371,7 +1408,7 @@ def eveReservaLlegada(request, codigo_qr):
         messages.error(request, f'Error: {e}')
         return redirect(reverse('eveReserva', args=[reserva.evento.id]))
 
-
+@rol_requerido([1])
 def eveEliminados(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1382,6 +1419,7 @@ def eveEliminados(request):
 
 
 # MENÚ (CATEGORÍAS)
+@rol_requerido([1])
 def meInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1389,7 +1427,7 @@ def meInicio(request):
     contexto = {'data' : q, 'user':user, 'url': 'Gestion_Menu'}
     return render(request, "Oasis/menu/meInicio.html", contexto)
 
-
+@rol_requerido([1])
 def crearCategoria(request):
     if request.method == "POST":
         try:
@@ -1420,6 +1458,8 @@ def crearCategoria(request):
         messages.warning (request, f'Error: No se enviaron datos...')
         return redirect('Menu')
 
+
+@rol_requerido([1])
 def eliminarCategoria(request, id):
     try:
         q = Categoria.objects.get(pk = id)
@@ -1431,6 +1471,7 @@ def eliminarCategoria(request, id):
     return redirect('Menu')
 
 
+@rol_requerido([1])
 def actualizarCategoria(request, id):
     if request.method == "POST":
         nom = request.POST.get('nombre')
@@ -1460,6 +1501,9 @@ def actualizarCategoria(request, id):
         
     return redirect('Menu')
 
+
+
+@rol_requerido([1])
 def meProductos(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1471,6 +1515,7 @@ def meProductos(request, id):
     return render (request, 'Oasis/menu/meProductos.html', contexto)
 
 
+@rol_requerido([1])
 def meCrearProducto(request, id):
     if request.method == "POST":
         try:
@@ -1515,6 +1560,7 @@ def meCrearProducto(request, id):
     return redirect('meProductos', id)
 
 
+@rol_requerido([1])
 def meDetalleProducto(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1523,6 +1569,7 @@ def meDetalleProducto(request, id):
     return render(request, 'Oasis/menu/meDetalleProducto.html', contexto)
 
 
+@rol_requerido([1])
 def gaInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1531,7 +1578,7 @@ def gaInicio(request):
     return render(request, "Oasis/galeria/gaInicio.html", contexto)
 
 
-
+@rol_requerido([1])
 def crearCarpeta(request):
     if request.method == "POST":
         try:
@@ -1562,6 +1609,9 @@ def crearCarpeta(request):
         messages.warning (request, f'Error: No se enviaron datos...')
         return redirect('gaInicio')
 
+
+
+@rol_requerido([1])
 def eliminarCarpeta(request, id):
     try:
         q = Galeria.objects.get(pk = id)
@@ -1573,6 +1623,7 @@ def eliminarCarpeta(request, id):
     return redirect('gaInicio')
 
 
+@rol_requerido([1])
 def actualizarCarpeta(request, id):
     if request.method == "POST":
         nom = request.POST.get('nombre')
@@ -1603,7 +1654,7 @@ def actualizarCarpeta(request, id):
         
     return redirect('gaFotos', id=id)
 
-
+@rol_requerido([1])
 def gaFotos(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -1613,6 +1664,7 @@ def gaFotos(request, id):
     return render(request, 'Oasis/galeria/gaFotos.html', contexto)
 
 
+@rol_requerido([1])
 def agregarFoto(request, id):
     if request.method == "POST":
         foto_nueva = request.FILES.get('foto_nueva')
@@ -1633,6 +1685,7 @@ def agregarFoto(request, id):
 
 
 
+@rol_requerido([1])
 def cambiarFoto(request, id):
     if request.method == "POST":
         foto_nueva = request.FILES.get('foto_nueva')
@@ -1649,6 +1702,7 @@ def cambiarFoto(request, id):
     return redirect('gaFotos', id=q.carpeta.id)
 
 
+@rol_requerido([1])
 def eliminarFoto(request, id):
     try:
         q = Fotos.objects.get(pk = id)
@@ -1658,6 +1712,8 @@ def eliminarFoto(request, id):
         messages.error(request, f'Error: {e}')
     
     return redirect('gaFotos', id=q.carpeta.id)
+
+
 
 
 def front_productos(request):
@@ -1959,6 +2015,7 @@ def reservar_mesa(request, id):
     return JsonResponse({'messages': messages})
 
 
+@rol_requerido([1])
 def enviar_correo_cancelacion_reserva(reserva):
     try:
         destinatario = reserva.usuario.email
@@ -1980,6 +2037,7 @@ def enviar_correo_cancelacion_reserva(reserva):
         print(f"Error al enviar el correo: {e}") 
 
 
+@rol_requerido([1])
 def eliminar_reserva(request, id):
     try:
         reserva = Reserva.objects.get(pk=id)
@@ -2020,6 +2078,7 @@ def escanear_mesa (request):
 
     contexto = {'user':user, 'mesas':mesas}
     return render(request, "Oasis/front_pedidos/escanear_mesa.html", contexto)
+
 
 
 def pedidoUsuario(request, id):
@@ -2105,26 +2164,6 @@ def carrito_add(request):
 def carrito_ver(request):
     carrito = request.session.get("carrito", False)
     template_name = "template_name", "Oasis/carrito/carrito.html"
-
-    if not carrito:
-        request.session["carrito"] =[]
-        request.session["items"] = 0
-        contexto = {
-        "items": 0,
-        "total": 0
-    }
-    else:
-        contexto = {
-            "items": len(carrito),
-            "total": sum(p["subtotal"] for p in carrito)
-        }
-        request.session["items"] = len(carrito)
-    return render(request, template_name, contexto)
-
-
-def carrito_ver_admin(request):
-    carrito = request.session.get("carrito", False)
-    template_name = "Oasis/carrito/carrito_admin.html"
 
     if not carrito:
         request.session["carrito"] =[]
@@ -3067,6 +3106,7 @@ def pagar_pedido(request, id, rol):
         return redirect('peGestionMesas')
 
 
+@rol_requerido([3, 1])
 def ver_pedidos_mesa(request, mesa_id):
     logueo = request.session.get("logueo", False)
     if logueo:
@@ -3114,6 +3154,7 @@ def ver_pedidos_mesa(request, mesa_id):
     return render(request, 'Oasis/pedidos/info_pedido_mesa.html', contexto)
 
 
+@rol_requerido([1])
 def ver_historial_pedidos(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -3134,6 +3175,8 @@ def ver_historial_pedidos(request):
     return render(request, "Oasis/pedidos/peHistorial.html", contexto)
 
 
+
+@rol_requerido([4, 3, 1])
 def descargar_pdf_pedido(request, id):
     try:
         historial_pedido = HistorialPedido.objects.get(pk=id)
@@ -3164,6 +3207,7 @@ def descargar_pdf_pedido(request, id):
         return HttpResponse(f"Error: {e}", status=500)
 
 
+@rol_requerido([3, 1])
 def ver_mesas_a_cargo(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -3180,7 +3224,7 @@ def ver_mesas_a_cargo(request):
         messages.error(request, f"Ocurrió un Error: {e}")
     
 
-
+@rol_requerido([2, 1])
 def entregar_pedido(request, id):
     try:
         pedido = Pedido.objects.get(pk=id)
@@ -3193,6 +3237,7 @@ def entregar_pedido(request, id):
     return redirect('peInicio')
 
 
+@rol_requerido([2, 1])
 def cancelar_pedido(request):
     if request.method == 'POST':
         pedido_id = request.POST.get('pedido_id')
@@ -3217,12 +3262,19 @@ def cancelar_pedido(request):
     return redirect('peInicio')
 
 
+@rol_requerido([4, 3, 1])
 def cancelar_pedido_sin_comentario(request, id_pedido, id_mesa=None, ruta=None):
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
+
+        if not id_mesa:
+            tiempo_transcurrido = timezone.now() - pedido.fecha
+            if tiempo_transcurrido > timedelta(minutes=10):
+                messages.error(request, "No puedes eliminar este ítem porque han pasado más de 10 minutos desde que se creó.")
+                return redirect(f'/{ruta}/')
+
         pedido.estado = pedido.CANCELADO
         pedido.comentario = ""
-
         detalles_pedido = DetallePedido.objects.filter(pedido=pedido)
         for d in detalles_pedido:
             d.estado = d.ELIMINADO
@@ -3240,7 +3292,7 @@ def cancelar_pedido_sin_comentario(request, id_pedido, id_mesa=None, ruta=None):
         return redirect(f'/{ruta}/')
 
 
-
+@rol_requerido([2, 1])
 def eliminar_item(request):
     if request.method == 'POST':
         producto_id = request.POST.get('producto_id')
@@ -3262,10 +3314,17 @@ def eliminar_item(request):
     return redirect('peInicio')
 
 
-
+@rol_requerido([4, 3, 1])
 def eliminar_item_sin_comentario(request, id_producto, id_mesa=None, ruta=None):
     try:
         detalle = DetallePedido.objects.get(pk=id_producto)
+
+        if not id_mesa:
+            tiempo_transcurrido = timezone.now() - detalle.pedido.fecha
+            if tiempo_transcurrido > timedelta(minutes=10):
+                messages.error(request, "No puedes eliminar este ítem porque han pasado más de 10 minutos desde que se creó.")
+                return redirect(f'/{ruta}/')
+            
         detalle.estado = detalle.ELIMINADO
         detalle.motivo_eliminacion = ""
         detalle.save()
@@ -3280,6 +3339,8 @@ def eliminar_item_sin_comentario(request, id_producto, id_mesa=None, ruta=None):
         return redirect(f'/{ruta}/')
     
 
+
+@rol_requerido([4, 3, 1])
 def liberar_mesa(request, id):
     logueo = request.session.get("logueo")
     user = Usuario.objects.get(pk=logueo["id"])
@@ -3335,6 +3396,8 @@ def crear_venta(request):
 
 	return redirect('inicio')
 
+
+@rol_requerido([4, 3, 1])
 def ver_pedidos_usuario(request):
     logueo = request.session.get("logueo")
     user = Usuario.objects.get(pk=logueo["id"])
@@ -3361,6 +3424,7 @@ def ver_pedidos_usuario(request):
     }
     return render(request, ruta, contexto)
 
+@rol_requerido([4, 3, 1])
 def ver_detalles_usuario(request):
     logueo = request.session.get("logueo")
     user = Usuario.objects.get(pk=logueo["id"])
@@ -3416,6 +3480,7 @@ def ver_detalles_usuario(request):
     return render(request, ruta, contexto)
 
 
+@rol_requerido([1])
 def ganancias_eventos(request):   
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -3431,6 +3496,7 @@ def ganancias_eventos(request):
     return render(request, 'Oasis/reportes/reportes_eventos.html', context)
 
 
+@rol_requerido([1])
 def descargar_pdf_ganancias_evento(request, id):
     evento = Evento.objects.get(id=id)
     

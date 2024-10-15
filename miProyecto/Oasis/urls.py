@@ -206,7 +206,6 @@ urlpatterns = [
 	path("actualizar_totales_carrito/<int:id_producto>/", views.actualizar_totales_carrito, name="actualizar_totales_carrito"),
 
 #CARRITO DE COMPRA MESERO
-	path("carrito_ver_admin/", views.carrito_ver_admin, name="carrito_ver_admin"),
 	path("actualizar_totales_carrito_admin/<int:id_producto>/", views.actualizar_totales_carrito_admin, name="actualizar_totales_carrito_admin"),
     path("carrito_eliminar_admin/<int:id>/", views.carrito_eliminar_admin, name="carrito_eliminar_admin"),
 	path("vaciar_carrito_admin/", views.vaciar_carrito_admin, name="vaciar_carrito_admin"),
