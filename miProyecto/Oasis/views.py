@@ -68,6 +68,9 @@ from .models import *
 #Validar la fecha de Nacimiento
 from datetime import datetime
 
+# Para restringir las vistas
+from .decorators import rol_requerido
+
 #Enviar emails por un hilo separado
 class EmailThread(threading.Thread):
     def __init__(self, subject, message, recipient_list):
@@ -80,10 +83,10 @@ class EmailThread(threading.Thread):
         # El correo ahora se envía como HTML
         send_mail(
             subject=self.subject,
-            message='Este correo requiere un cliente compatible con HTML.',  # Mensaje de texto plano
+            message='Este correo requiere un cliente compatible con HTML.',
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=self.recipient_list,
-            html_message=self.message  # Aquí va el mensaje en HTML
+            html_message=self.message
         )
 
 def calcular_edad(fecha_nacimiento):
@@ -182,6 +185,7 @@ def enviar_correo_recuperar(usuario, codigo, link):
         email.send()
     except Exception as e:
         print(f"Error al enviar el correo de reserva: {e}")
+
 
 def recuperar_contrasena(request):
     if request.method == "POST":
@@ -412,6 +416,8 @@ def cambiar_clave(request):
     
     return redirect('ver_perfil')
 
+
+@rol_requerido([4])
 def entradas_usuario(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -430,6 +436,7 @@ def entradas_usuario(request):
     contexto = {'entrada_info': entradas_info, 'user': user, 'url':'entradas'}
     return render(request, "Oasis/front_usuario/front_usuario_entradas.html", contexto)
 
+
 def entradas_usuario_info(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
@@ -447,6 +454,8 @@ def entradas_usuario_info(request, id):
         messages.error(request, f'La compra de entrada con el ID {id} no existe o no pertenece al usuario actual.')
         return redirect('entradas_usuario')
     
+
+@rol_requerido([4])
 def reservas_usuario(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -481,6 +490,7 @@ def reservas_usuario_info(request, id):
 
 
 #USUARIOS
+@rol_requerido([1])
 def guInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -508,6 +518,8 @@ def guInicio(request):
     }
     return render(request, "Oasis/usuarios/guInicio.html", contexto)
 
+
+@rol_requerido([1])
 def guUsuariosCrear(request):
     if request.method == 'POST':
         try:
@@ -564,6 +576,8 @@ def guUsuariosCrear(request):
 
     return redirect('guInicio')
 
+
+@rol_requerido([1])
 def guUsuariosEliminados(request, id):
     try:
         q = Usuario.objects.get(pk = id)
@@ -575,6 +589,7 @@ def guUsuariosEliminados(request, id):
     return redirect('guInicio')
 
 
+@rol_requerido([1])
 def guUsuariosActualizar(request, id):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -629,6 +644,7 @@ def guUsuariosActualizar(request, id):
     return redirect('guInicio')
 
 
+@rol_requerido([1])
 def gu_reservas_usuario(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -642,6 +658,7 @@ def gu_reservas_usuario(request, id):
     return render(request, "Oasis/usuarios/guReservasUsuario.html", {'user': user, 'usuarioReserva': usuario_reservas, 'reservas' : q})
 
 
+@rol_requerido([1])
 def gu_historial_pedidos_usuario(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -668,6 +685,7 @@ def gu_historial_pedidos_usuario(request, id):
         messages.error(request, f'Error: {e}')
     
 
+@rol_requerido([1])
 def guUsuariosBloqueados(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -686,6 +704,7 @@ def guUsuariosBloqueados(request):
     return render(request, "Oasis/usuarios/guUsuariosBloqueados.html", contexto)
 
 
+@rol_requerido([1])
 def guBloquearUsuario(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -715,6 +734,7 @@ def guBloquearUsuario(request, id):
     return redirect('guInicio')
 
 
+@rol_requerido([1])
 def guDesbloquearUsuario(request, id):
     try:
         q = Bloqueo.objects.get(pk = id)
@@ -730,8 +750,10 @@ def guDesbloquearUsuario(request, id):
 
     return redirect('guUsuariosBloqueados')
 
-#PRODUCTOS
 
+
+#PRODUCTOS
+@rol_requerido([1])
 def invProductos(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -740,6 +762,8 @@ def invProductos(request):
     contexto = {'data' : q, 'user':user,  'categories':categories, 'url': "Gestion_Productos" }
     return render(request, "Oasis/inventario/invProductos.html", contexto)
 
+
+@rol_requerido([1])
 def crearProducto(request):
     if request.method == "POST":
         try:
@@ -784,6 +808,8 @@ def crearProducto(request):
 
     return redirect('Productos')
 
+
+@rol_requerido([1])
 def eliminarProducto(request, id):
     try:
         q = Producto.objects.get(pk = id)
@@ -799,6 +825,8 @@ def eliminarProducto(request, id):
     
     return redirect('Productos')
 
+
+@rol_requerido([1])
 def actualizarProducto(request, id):
     if request.method == "POST":
         cat = Categoria.objects.get(pk=request.POST.get('categoria'))
@@ -845,6 +873,7 @@ def actualizarProducto(request, id):
     return redirect('Productos')
 
 
+@rol_requerido([1])
 def invDetalleProducto(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
@@ -854,7 +883,7 @@ def invDetalleProducto(request, id):
     return render(request, 'Oasis/inventario/invDetalleProducto.html', contexto)
 
 
-
+@rol_requerido([2, 1])
 def peInicio(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
@@ -884,6 +913,8 @@ def peInicio(request):
     }
     return render(request, "Oasis/pedidos/peInicio.html", contexto)
 
+
+@rol_requerido([3, 1])
 def peGestionMesas(request):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk = logueo["id"])
