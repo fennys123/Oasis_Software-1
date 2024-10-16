@@ -1,0 +1,134 @@
+{% extends 'Oasis/barNav.html' %}
+{% load static %}
+{% load humanize %}
+{% block titulo %} Reporte de Mesas {% endblock %}
+{% block contenedor %}
+<div class="radio-inputs many">
+    <label class="radio">
+        <a href="{% url 'ver_perfil' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Inicio</span>
+        </a>
+    </label>
+    <label class="radio">
+        <a href="{% url 'ver_ventas' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Historial de Ventas</span>
+        </a>
+    </label>
+    <label class="radio">
+        <a href="{% url 'ver_mesas_a_cargo' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Mesas a cargo</span>
+        </a>
+    </label>
+    <label class="radio">
+        <a href="{% url 'ganancias_eventos' %}">
+            <input type="radio" name="radio" />
+            <span class="name">Ganancias Eventos</span>
+        </a>
+    </label>
+    <label class="radio">
+        <a href="{% url 'reporte_mesas' %}">
+            <input type="radio" name="radio" checked="" />
+            <span class="name">Reporte de Mesas</span>
+        </a>
+    </label>
+</div>
+
+<h1>Reporte de Mesas</h1>
+{% if mesas|length == 0 %}
+<p>No hay mesas reportadas</p>
+{% else %}
+<div class="Contenido">
+    <div class="conteos">
+        <p>Todos (<span>{{ mesas|length }}</span>)</p>
+    </div>
+</div>
+<br>
+<div class="Contenido">
+    <a href="{% url 'reset_mesas' %}" class="btn btn-danger">Borrar Todo</a>
+</div>
+<br>
+<div id="contenedorTabla">
+    <table class="table" id="table">
+        <thead class="thead-light">
+            <tr>
+                <th>Mesa</th>
+                <th>Reserva</th>
+                <th>Subtotal</th>
+                <th>Ganancia Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in mesas %}
+            <tr>
+                <td data-label="Mesa">{{ m.nombre }}</td>
+                <td data-label="Reserva">${{ m.ganancia_reserva|intcomma }}</td>
+                <td data-label="pedido">$ {{ m.pedidos|intcomma }}</td>
+                <td data-label="Ganancia Total">$ {{ m.total_ganancia|intcomma }}</td>
+                <td>
+                    <button type="button" class="btn btn-info" data-toggle="modal"
+                        data-target="#detalleMesa{{ m.id }}"><i class="bi bi-info-circle"></i></button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+
+{% for m in mesas %}
+<div class="modal fade" id="detalleMesa{{ m.id }}" tabindex="-1" role="dialog" aria-labelledby="detalleMesaLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="tituloFormulario">Detalles Mesa</p>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-body d-flex flex-column align-items-center justify-content-center">
+                    <h5 class="fw-bold mt-2">{{ m.nombre }}</h5>
+                    <p class="d-inline-block text-primary bg-light fw-semibold py-1 px-2" style="font-size: 12px">{{ m.nombre }}</p>
+                    <table class="table" style="font-size: 14px">
+                        <tbody>
+                            <tr>
+                                <td data-label="Ganancia Total" class="fw-bold">Ganancia Reserva</td>
+                                <td data-label="Total" class="fw-bold">${{ m.ganancia_reserva|intcomma }}</td>
+                            <tr>
+                                <td data-label="Ganancia Total" class="fw-bold">Subtotal</td>
+                                <td data-label="Total" class="fw-bold">${{ m.pedidos|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td data-label="Ganancia Total" class="fw-bold">Ganancia Total</td>
+                                <td data-label="Total" class="fw-bold">${{ m.total_ganancia|intcomma }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex mt-4 gap-3">
+                        <button type="button" class="btn btn-success"onclick="descargarPDF1({{ m.id }}, {{ m.ganancia_reserva }}, {{ m.pedidos }}, {{ m.total_ganancia }})"><i class="bi bi-printer"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function descargarPDF1(mesaId, gananciaReserva, pedidos, totalGanancia) {
+        if (gananciaReserva === 0 && pedidos === 0 && totalGanancia === 0) {
+            alert("No se puede descargar el PDF porque todos los campos están vacíos.");
+        } else {
+            const url = `/descargar_pdf_mesas/${mesaId}/`;
+            window.location.href = url;
+        }
+    }
+</script>
+
+{% endblock %}

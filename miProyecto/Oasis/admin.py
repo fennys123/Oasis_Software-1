@@ -45,10 +45,10 @@ class entradasQRAdmin(admin.ModelAdmin):
 
 @admin.register(Mesa)
 class MesaAdmin(admin.ModelAdmin):
-    list_display = ['id','nombre', 'capacidad', 'precio','estado','estado_reserva','codigo_qr', 'qr_imagen','usuario']
+    list_display = ['id','nombre', 'capacidad', 'precio','estado','estado_reserva','codigo_qr', 'qr_imagen','usuario','total_ganancia','ganancia_reserva','pedidos']
     search_fields = ['id','estado', 'capacidad','estado_reserva']
     list_filter = ['estado', 'capacidad','estado_reserva']
-    list_editable = ['estado', 'capacidad', 'estado_reserva', 'precio']
+    list_editable = ['estado', 'capacidad', 'estado_reserva', 'precio','total_ganancia','ganancia_reserva','pedidos']
 
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
@@ -119,7 +119,7 @@ class FotosAdmin(admin.ModelAdmin):
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
     #Agregar 'usuario' cuando funcione
-    list_display = ['id', 'usuario','fecha_venta']
+    list_display = ['id', 'usuario','fecha_venta', 'total_ganancia']
 
 @admin.register(DetalleVenta)
 class DetalleVentaAdmin(admin.ModelAdmin):

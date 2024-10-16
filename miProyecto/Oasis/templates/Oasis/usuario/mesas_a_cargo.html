@@ -32,6 +32,14 @@
                 </a>
             </label>
         {% endif %}
+        {% if user.rol == 1 %}
+        <label class="radio">
+            <a href="{% url 'reporte_mesas' %}">
+              <input type="radio" name="radio" />
+              <span class="name">Reporte de Mesas</span>
+            </a>
+          </label>
+          {% endif %}
     </div>
 
   

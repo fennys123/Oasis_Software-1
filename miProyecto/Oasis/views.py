@@ -437,7 +437,6 @@ def entradas_usuario(request):
     contexto = {'entrada_info': entradas_info, 'user': user, 'url':'entradas'}
     return render(request, "Oasis/front_usuario/front_usuario_entradas.html", contexto)
 
-
 def entradas_usuario_info(request, id):
     logueo = request.session.get("logueo", False)
     user = Usuario.objects.get(pk=logueo["id"])
@@ -2003,6 +2002,8 @@ def reservar_mesa(request, id):
             evento.ganancia_total += total
             evento.save()
             mesa.estado_reserva = 'Reservada'
+            mesa.ganancia_reserva += total
+            mesa.total_ganancia = mesa.ganancia_reserva + mesa.pedidos
             mesa.save()
 
             messages.append({'message_type': 'success', 'message': 'Mesa reservada correctamente'})
@@ -2164,6 +2165,26 @@ def carrito_add(request):
 def carrito_ver(request):
     carrito = request.session.get("carrito", False)
     template_name = "template_name", "Oasis/carrito/carrito.html"
+
+    if not carrito:
+        request.session["carrito"] =[]
+        request.session["items"] = 0
+        contexto = {
+        "items": 0,
+        "total": 0
+    }
+    else:
+        contexto = {
+            "items": len(carrito),
+            "total": sum(p["subtotal"] for p in carrito)
+        }
+        request.session["items"] = len(carrito)
+    return render(request, template_name, contexto)
+
+
+def carrito_ver_admin(request):
+    carrito = request.session.get("carrito", False)
+    template_name = "Oasis/carrito/carrito_admin.html"
 
     if not carrito:
         request.session["carrito"] =[]
@@ -3091,7 +3112,9 @@ def pagar_pedido(request, id, rol):
         pedidos.delete()
         pedidos_eliminados.delete()
 
-        # Actualizar el estado de la mesa
+        # Actualizar el total de ganancias sumando reservas y pedidos
+        mesa.pedidos += total_pedido
+        mesa.total_ganancia = mesa.ganancia_reserva + mesa.pedidos
         mesa.estado = mesa.DISPONIBLE
         mesa.usuario = None
         mesa.save()
@@ -3275,6 +3298,7 @@ def cancelar_pedido_sin_comentario(request, id_pedido, id_mesa=None, ruta=None):
 
         pedido.estado = pedido.CANCELADO
         pedido.comentario = ""
+
         detalles_pedido = DetallePedido.objects.filter(pedido=pedido)
         for d in detalles_pedido:
             d.estado = d.ELIMINADO
@@ -3517,6 +3541,67 @@ def descargar_pdf_ganancias_evento(request, id):
         return HttpResponse('Error al generar el PDF', status=500)
     
     return response
+
+@rol_requerido([1])
+def reporte_mesas(request):
+    logueo = request.session.get("logueo", False)
+    user = Usuario.objects.get(pk=logueo["id"])
+    mesas = Mesa.objects.all()
+    context = {
+        'user': user,
+        'mesas': mesas,
+        'fecha_actual': datetime.now().strftime('%d de %B de %Y'),
+        'url': "reporte_mesas"
+    }
+    return render(request, 'Oasis/reportes/reporte_mesas.html', context)
+
+@rol_requerido([1])
+def descargar_pdf_mesas(request, id):
+    mesa = Mesa.objects.get(id=id)
+     # Establecer el locale en español
+    locale.setlocale(locale.LC_TIME, 'es_CO.utf8')
+
+    
+    fecha_actual = datetime.now().strftime('%d de %B de %Y')
+   
+    html_string = render_to_string('Oasis/pdf/reporte_mesa_pdf.html', {'mesa': mesa, 'request': request,'fecha_actual': fecha_actual})
+    
+    response = HttpResponse(content_type='application/pdf')
+   
+    response['Content-Disposition'] = f'attachment; filename="mesa_{mesa.nombre}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html_string, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF', status=500)
+    return response
+
+@rol_requerido([1])
+def reset_mesas(request):
+    try:
+        # Obtener todas las mesas
+        mesas = Mesa.objects.all()
+
+        # Recorrer cada mesa y poner tanto el total de ganancias como la reserva en 0
+        for mesa in mesas:
+            mesa.total_ganancia = 0  # Poner las ganancias en 0
+            mesa.ganancia_reserva = 0  # Poner el precio/reserva en 0
+            mesa.pedidos = 0
+            mesa.save()
+
+        # Añadir mensaje de éxito
+        messages.success(request, 'Las mesas han sido reseteadas exitosamente.')
+
+    except Exception as e:
+        # Añadir mensaje de error si algo falla
+        messages.error(request, f'Ocurrió un error al resetear las mesas: {str(e)}')
+
+    # Redirigir de vuelta al reporte de mesas
+    return redirect('reporte_mesas')
+
+
+#mas_info
+def mas_info(request):
+    return render(request, 'Oasis/mas_info.html')
 
 # -------------------------------------------------------------------------------------------
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication

@@ -27,7 +27,8 @@
     <link rel="stylesheet" href="{% static 'Oasis/css/usuario.css' %}">
     <link rel="stylesheet" href="{% static 'Oasis/css/entradas.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-    
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'Oasis/img/favicon-32x32.png' %}">
+
 
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -106,7 +107,7 @@
               {% endif %}
             </ul>
             <ul class="items-barra logout">
-              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'ver_mesas_a_cargo' or url == 'ganancias_eventos' %} class="active" {% endif %}>
+              <li><a href="{% url 'ver_perfil' %}" {% if url == 'Perfil' or url == 'ver_detalles_pedido_usuario' or url == 'historial_pedidos' or url == 'ver_mesas_a_cargo' or url == 'ganancias_eventos' or url == "reporte_mesas" %} class="active" {% endif %}>
                 <span class="icon"><i class="fas fa-user-circle"></i></span>
                 <span class="title">Mi perfil</span>
               </a></li>

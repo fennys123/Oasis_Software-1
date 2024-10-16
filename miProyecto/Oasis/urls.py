@@ -24,6 +24,7 @@ router.register(r'detalle_venta', views.DetalleVentaViewSet)
 
 
 urlpatterns = [
+    
     path('api/1.0/', include(router.urls)),
     path('api/1.0/token-auth/', views.CustomAuthToken.as_view()),
 	path('api/1.0/api-auth/', include('rest_framework.urls')),
@@ -144,6 +145,12 @@ urlpatterns = [
 
     path('reservasMesa/<int:id>', views.reservasMesa, name='reservasMesa'),
 
+    # Ruta para el reporte de mesas
+    path('reporte_mesas/', views.reporte_mesas, name='reporte_mesas'),
+    path('descargar_pdf_mesas/<int:id>/', views.descargar_pdf_mesas, name='descargar_pdf_mesas'),
+    path('reset_mesas/', views.reset_mesas, name='reset_mesas'),
+
+
 
 
 #   CRUD EVENTOS
@@ -206,6 +213,7 @@ urlpatterns = [
 	path("actualizar_totales_carrito/<int:id_producto>/", views.actualizar_totales_carrito, name="actualizar_totales_carrito"),
 
 #CARRITO DE COMPRA MESERO
+	path("carrito_ver_admin/", views.carrito_ver_admin, name="carrito_ver_admin"),
 	path("actualizar_totales_carrito_admin/<int:id_producto>/", views.actualizar_totales_carrito_admin, name="actualizar_totales_carrito_admin"),
     path("carrito_eliminar_admin/<int:id>/", views.carrito_eliminar_admin, name="carrito_eliminar_admin"),
 	path("vaciar_carrito_admin/", views.vaciar_carrito_admin, name="vaciar_carrito_admin"),
